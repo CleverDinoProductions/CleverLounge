@@ -84,7 +84,7 @@
 					class="msg-statusmsg tooltipped tooltipped-e"
 					><span>{{ message.statusmsgGroup }}</span></span
 				>
-				<ParsedMessage :network="network" :message="message" />
+				<ParsedMessage :network="network" :message="message" :channel="channel" />
 				<LinkPreview
 					v-for="preview in message.previews"
 					:key="preview.link"
