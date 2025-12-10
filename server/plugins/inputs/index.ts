@@ -53,6 +53,7 @@ const builtInInputs = [
 	"connect",
 	"ctcp",
 	"disconnect",
+	"history",
 	"ignore",
 	"ignorelist",
 	"invite",
