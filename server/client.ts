@@ -51,6 +51,7 @@ const events = [
 	"sasl",
 	"topic",
 	"welcome",
+	"who",
 	"whois",
 ];
 
