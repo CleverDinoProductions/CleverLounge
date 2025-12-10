@@ -2940,3 +2940,355 @@ part/quit messages where we don't load previews (adds a blank line otherwise) */
 	justify-content: center;
 	align-items: center;
 }
+
+/* ==================== MAM BADGE STYLING ==================== */
+
+/* Wider userlist to fit badges */
+#chat .userlist {
+	width: 240px !important;
+	min-width: 240px !important;
+}
+
+#chat .userlist .names {
+	flex-grow: 1;
+	overflow: auto;
+	overflow-x: hidden;
+	padding-bottom: 10px;
+	width: 240px !important;
+	touch-action: pan-y;
+	scrollbar-width: thin;
+	overscroll-behavior: contain;
+	-webkit-overflow-scrolling: touch;
+}
+
+#chat .names .user {
+	display: flex !important;
+	align-items: center !important;
+	gap: 4px !important;
+	line-height: 1.6 !important;
+	padding: 0 12px !important;
+	white-space: nowrap !important;
+	overflow: visible !important;
+	max-width: none !important;
+}
+
+/* MAM class badge styling */
+.mam-class-badge {
+	font-size: 0.7em !important;
+	margin-left: 4px !important;
+	padding: 1px 4px !important;
+	border-radius: 3px !important;
+	background: rgba(255, 255, 255, 0.15) !important;
+	opacity: 0.95 !important;
+	white-space: nowrap !important;
+	flex-shrink: 0 !important;
+	font-weight: normal !important;
+}
+
+/* Add padding to usernames with backgrounds */
+#chat .names .user[class*="mam-class-"] {
+	padding: 2px 6px !important;
+	border-radius: 3px !important;
+	margin: 1px 0 !important;
+}
+
+/* MAM Official Class Colors - Username text colors with backgrounds */
+
+#chat .names .user.mam-class-dev { 
+	color: #000 !important; 
+	background-color: #093 !important;
+	font-weight: 500 !important;
+}
+
+#chat .names .user.mam-class-sysop { 
+	color: #FFF !important; 
+	background-color: #336699 !important;
+	font-weight: bold !important;
+}
+
+#chat .names .user.mam-class-sr-admin { 
+	color: #000 !important; 
+	background-color: #006600 !important;
+	font-weight: bold !important;
+}
+
+#chat .names .user.mam-class-admin { 
+	color: #000 !important; 
+	background-color: #30AA0F !important;
+	font-weight: bold !important;
+}
+
+#chat .names .user.mam-class-uploaders-c { 
+	color: #FFF !important; 
+	background-color: #B05F3C !important;
+	font-weight: bold !important;
+}
+
+#chat .names .user.mam-class-sr-mod { 
+	color: #000 !important; 
+	background-color: #FF4500 !important;
+	font-weight: bold !important;
+}
+
+#chat .names .user.mam-class-mod { 
+	color: #000 !important; 
+	background-color: #FFA500 !important;
+	font-weight: bold !important;
+}
+
+#chat .names .user.mam-class-t-mod { 
+	color: #000 !important; 
+	background-color: #E9967A !important;
+	font-weight: 500 !important;
+}
+
+#chat .names .user.mam-class-f-mod { 
+	color: #000 !important; 
+	background-color: #FF7F50 !important;
+	font-weight: 500 !important;
+}
+
+#chat .names .user.mam-class-support { 
+	color: #000 !important; 
+	background-color: #FF0099 !important;
+	font-weight: 500 !important;
+}
+
+#chat .names .user.mam-class-entry { 
+	color: #000 !important; 
+	background-color: #FF0A23 !important;
+	font-weight: 500 !important;
+}
+
+#chat .names .user.mam-class-uploader { 
+	color: #FFF !important; 
+	background-color: #B05F3C !important;
+	font-weight: 500 !important;
+}
+
+#chat .names .user.mam-class-mouseketeer { 
+	color: #FFF !important; 
+	background-color: #696969 !important;
+	font-weight: 500 !important;
+}
+
+#chat .names .user.mam-class-supporter { 
+	color: #000 !important; 
+	background-color: #BABA25 !important;
+	font-weight: 500 !important;
+}
+
+#chat .names .user.mam-class-elite { 
+	color: #CC0 !important; 
+	background-color: #3366CC !important;
+	font-weight: bold !important;
+}
+
+#chat .names .user.mam-class-e-vip { 
+	color: #FFF !important; 
+	background-color: #7C2FE0 !important;
+	font-weight: bold !important;
+}
+
+#chat .names .user.mam-class-vip { 
+	color: #FFF !important; 
+	background-color: #985BE8 !important;
+	font-weight: 500 !important;
+}
+
+#chat .names .user.mam-class-p-user { 
+	color: #FFF !important; 
+	background-color: #D21E36 !important;
+	font-weight: 500 !important;
+}
+
+#chat .names .user.mam-class-user { 
+	color: #000 !important; 
+	background-color: #669999 !important;
+}
+
+#chat .names .user.mam-class-mouse { 
+	color: #000 !important; 
+	background-color: #ff43b5 !important;
+}
+
+/* Users WITHOUT MAM class use normal IRC usermode colors */
+#chat .names .user.user-mode-owner:not([class*="mam-class-"]) { 
+	color: #e91e63 !important;
+}
+
+#chat .names .user.user-mode-admin:not([class*="mam-class-"]) { 
+	color: #ff5722 !important;
+}
+
+#chat .names .user.user-mode-op:not([class*="mam-class-"]) { 
+	color: #4caf50 !important;
+}
+
+#chat .names .user.user-mode-half-op:not([class*="mam-class-"]) { 
+	color: #2196f3 !important;
+}
+
+#chat .names .user.user-mode-voice:not([class*="mam-class-"]) { 
+	color: #9c27b0 !important;
+}
+
+#chat .names .user.user-mode-normal:not([class*="mam-class-"]) { 
+	color: var(--body-color) !important;
+}
+
+/* ==================== END MAM STYLING ==================== */
+
+/* MAM colors for usernames IN CHAT MESSAGES */
+
+/* Add padding/background to usernames in messages */
+#chat .msg .from .user[class*="mam-class-"] {
+	padding: 1px 5px !important;
+	border-radius: 3px !important;
+	margin: 0 2px !important;
+}
+
+/* MAM Official Class Colors - For usernames in chat */
+
+#chat .msg .from .user.mam-class-dev { 
+	color: #000 !important; 
+	background-color: #093 !important;
+	font-weight: 500 !important;
+}
+
+#chat .msg .from .user.mam-class-sysop { 
+	color: #FFF !important; 
+	background-color: #336699 !important;
+	font-weight: bold !important;
+}
+
+#chat .msg .from .user.mam-class-sr-admin { 
+	color: #000 !important; 
+	background-color: #006600 !important;
+	font-weight: bold !important;
+}
+
+#chat .msg .from .user.mam-class-admin { 
+	color: #000 !important; 
+	background-color: #30AA0F !important;
+	font-weight: bold !important;
+}
+
+#chat .msg .from .user.mam-class-uploaders-c { 
+	color: #FFF !important; 
+	background-color: #B05F3C !important;
+	font-weight: bold !important;
+}
+
+#chat .msg .from .user.mam-class-sr-mod { 
+	color: #000 !important; 
+	background-color: #FF4500 !important;
+	font-weight: bold !important;
+}
+
+#chat .msg .from .user.mam-class-mod { 
+	color: #000 !important; 
+	background-color: #FFA500 !important;
+	font-weight: bold !important;
+}
+
+#chat .msg .from .user.mam-class-t-mod { 
+	color: #000 !important; 
+	background-color: #E9967A !important;
+	font-weight: 500 !important;
+}
+
+#chat .msg .from .user.mam-class-f-mod { 
+	color: #000 !important; 
+	background-color: #FF7F50 !important;
+	font-weight: 500 !important;
+}
+
+#chat .msg .from .user.mam-class-support { 
+	color: #000 !important; 
+	background-color: #FF0099 !important;
+	font-weight: 500 !important;
+}
+
+#chat .msg .from .user.mam-class-entry { 
+	color: #000 !important; 
+	background-color: #FF0A23 !important;
+	font-weight: 500 !important;
+}
+
+#chat .msg .from .user.mam-class-uploader { 
+	color: #FFF !important; 
+	background-color: #B05F3C !important;
+	font-weight: 500 !important;
+}
+
+#chat .msg .from .user.mam-class-mouseketeer { 
+	color: #FFF !important; 
+	background-color: #696969 !important;
+	font-weight: 500 !important;
+}
+
+#chat .msg .from .user.mam-class-supporter { 
+	color: #000 !important; 
+	background-color: #BABA25 !important;
+	font-weight: 500 !important;
+}
+
+#chat .msg .from .user.mam-class-elite { 
+	color: #CC0 !important; 
+	background-color: #3366CC !important;
+	font-weight: bold !important;
+}
+
+#chat .msg .from .user.mam-class-e-vip { 
+	color: #FFF !important; 
+	background-color: #7C2FE0 !important;
+	font-weight: bold !important;
+}
+
+#chat .msg .from .user.mam-class-vip { 
+	color: #FFF !important; 
+	background-color: #985BE8 !important;
+	font-weight: 500 !important;
+}
+
+#chat .msg .from .user.mam-class-p-user { 
+	color: #FFF !important; 
+	background-color: #D21E36 !important;
+	font-weight: 500 !important;
+}
+
+#chat .msg .from .user.mam-class-user { 
+	color: #000 !important; 
+	background-color: #669999 !important;
+}
+
+#chat .msg .from .user.mam-class-mouse { 
+	color: #000 !important; 
+	background-color: #ff43b5 !important;
+}
+
+/* Users WITHOUT MAM class in chat use normal IRC usermode colors */
+#chat .msg .from .user.user-mode-owner:not([class*="mam-class-"]) { 
+	color: #e91e63 !important;
+}
+
+#chat .msg .from .user.user-mode-admin:not([class*="mam-class-"]) { 
+	color: #ff5722 !important;
+}
+
+#chat .msg .from .user.user-mode-op:not([class*="mam-class-"]) { 
+	color: #4caf50 !important;
+}
+
+#chat .msg .from .user.user-mode-half-op:not([class*="mam-class-"]) { 
+	color: #2196f3 !important;
+}
+
+#chat .msg .from .user.user-mode-voice:not([class*="mam-class-"]) { 
+	color: #9c27b0 !important;
+}
+
+#chat .msg .from .user.user-mode-normal:not([class*="mam-class-"]) { 
+	color: var(--body-color) !important;
+}
