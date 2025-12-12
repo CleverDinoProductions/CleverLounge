@@ -1,7 +1,6 @@
 <template>
 	<span class="content">
 		<Username :user="message.from" />
-		sets mode
 		<span>{{ formattedMode }}</span>
 	</span>
 </template>
@@ -29,86 +28,132 @@ export default defineComponent({
 			required: true,
 		},
 	},
-	
+
 	setup(props) {
 		const store = useStore();
-		
+
 		const formattedMode = computed(() => {
 			// Get network and channel info
 			const networkName = props.network?.name?.toLowerCase() || "";
 			const activeChannel = store.state.activeChannel;
 			const channelName = activeChannel?.channel?.name?.toLowerCase() || "";
 			const isMAM = networkName.includes("myanonamouse") || networkName.includes("mam");
-			
-			// Start with base mode map
-			const modeMap: Record<string, string> = {
-				// Standard channel modes
-				"+v": "VOICE on",
-				"-v": "removes VOICE from",
-				"+o": "OP on",
-				"-o": "removes OP from",
-				"+h": "HALF-OP on",
-				"-h": "removes HALF-OP from",
-				"+a": "ADMIN on",
-				"-a": "removes ADMIN from",
-				"+q": "OWNER on",
-				"-q": "removes OWNER from",
-				
-				// Anope FLAGS (if services sets them)
-				"+V": "AUTOMATIC VOICE on",
-				"-V": "removes AUTOMATIC VOICE from",
-				"+H": "AUTOMATIC HALF-OP on",
-				"-H": "removes AUTOMATIC HALF-OP from",
-				"+O": "AUTOMATIC OP on",
-				"-O": "removes AUTOMATIC OP from",
-				"+A": "AUTOMATIC ADMIN on",
-				"-A": "removes AUTOMATIC ADMIN from",
-				"+F": "FOUNDER ACCESS on",
-				"-F": "removes FOUNDER ACCESS from",
-				"+S": "SUCCESSOR STATUS on",
-				"-S": "removes SUCCESSOR STATUS from",
-				"+f": "ACCESS LIST MODIFICATION on",
-				"-f": "removes ACCESS LIST MODIFICATION from",
-				"+t": "TOPIC CONTROL on",
-				"-t": "removes TOPIC CONTROL from",
-				"+i": "INVITE PERMISSION on",
-				"-i": "removes INVITE PERMISSION from",
-				"+r": "KICK/BAN PERMISSION on",
-				"-r": "removes KICK/BAN PERMISSION from",
-				"+R": "RECOVER PERMISSION on",
-				"-R": "removes RECOVER PERMISSION from",
-				"+s": "SET PERMISSION on",
-				"-s": "removes SET PERMISSION from",
-				"+b": "AUTOMATIC KICKBAN on",
-				"-b": "removes AUTOMATIC KICKBAN from",
-				"+e": "BAN EXEMPTION on",
-				"-e": "removes BAN EXEMPTION from",
-			};
-			
-			// Override voice modes for MAM-specific channels
-			if (isMAM && channelName === "#anonamouse.net") {
-				modeMap["+v"] = "joined INVITE QUEUE -";
-				modeMap["-v"] = "left INVITE QUEUE -";
-			} else if (isMAM && channelName === "#help") {
-				modeMap["+v"] = "joined SUPPORT QUEUE -";
-				modeMap["-v"] = "left SUPPORT QUEUE -";
-			}
 
 			let text = (props.message as any).text;
 
-			// Replace mode symbols with readable names
-			Object.keys(modeMap).forEach((mode) => {
-				while (text.includes(mode)) {
-					text = text.replace(mode, modeMap[mode]);
-				}
-			});
+			// Extract mode pattern: "+nt" or "+v username" or "-v LJSilver"
+			// The text is JUST the mode change, not "sets mode +v user"
+			const modePattern = /([+-][a-zA-Z]+)(\s+(.+))?/;
+			const modeMatch = text.match(modePattern);
 
+			if (!modeMatch) return text; // No mode found, return original
+
+			const fullMode = modeMatch[1]; // e.g., "+nt" or "-v"
+			const modeArgs = modeMatch[3]?.trim() || ""; // e.g., "LJSilver"
+			const sign = fullMode[0]; // + or -
+			const flags = fullMode.slice(1); // e.g., "nt" or "v"
+
+			// Channel modes (no target user)
+			const channelModes: Record<string, string> = {
+				n: "no external messages",
+				t: "topic protection",
+				m: "moderated",
+				i: "invite only",
+				s: "secret",
+				p: "private",
+				k: "key protected",
+				l: "user limit",
+				r: "registered only",
+				c: "no colors",
+				C: "no CTCPs",
+				S: "SSL only",
+				x: "hidden host",
+			};
+
+			// User modes (with target username)
+			const userModes: Record<string, string> = {
+				o: "OP",
+				v: "VOICE",
+				h: "HALF-OP",
+				a: "ADMIN",
+				q: "OWNER",
+			};
+
+			// Anope FLAGS (services modes)
+			const anopeFlags: Record<string, string> = {
+				V: "AUTOMATIC VOICE",
+				H: "AUTOMATIC HALF-OP",
+				O: "AUTOMATIC OP",
+				A: "AUTOMATIC ADMIN",
+				F: "FOUNDER ACCESS",
+				S: "SUCCESSOR STATUS",
+				f: "ACCESS LIST MODIFICATION",
+				t: "TOPIC CONTROL",
+				i: "INVITE PERMISSION",
+				r: "KICK/BAN PERMISSION",
+				R: "RECOVER PERMISSION",
+				s: "SET PERMISSION",
+				b: "AUTOMATIC KICKBAN",
+				e: "BAN EXEMPTION",
+			};
+
+			// Check if this is a user mode with arguments
+			if (flags.length === 1 && userModes[flags] && modeArgs) {
+				// MAM-specific queue handling
+				if (isMAM && channelName === "#anonamouse.net" && flags === "v") {
+					const action = sign === "+" ? " joined " : " left ";
+					return `${action} INVITE QUEUE - ${modeArgs}`;
+				} else if (isMAM && channelName === "#help" && flags === "v") {
+					const action = sign === "+" ? " joined " : " left ";
+					return `${action} SUPPORT QUEUE - ${modeArgs}`;
+				}
+
+				// Standard user mode
+				const action = sign === "+" ? " granted " : " removed ";
+				const preposition = sign === "+" ? " to " : " from ";
+				return `${action} ${userModes[flags]} ${preposition} ${modeArgs}`;
+			}
+
+			// Check if this is an Anope FLAGS mode
+			if (flags.length === 1 && anopeFlags[flags] && modeArgs) {
+				const action = sign === "+" ? " granted " : " removed ";
+				const preposition = sign === "+" ? " to " : " from ";
+				return `${action} ${anopeFlags[flags]} ${preposition} ${modeArgs}`;
+			}
+
+			// Handle multiple channel modes (e.g., +nt)
+			if (flags.length > 1 || (flags.length === 1 && channelModes[flags])) {
+				const descriptions: string[] = [];
+
+				for (const flag of flags) {
+					if (channelModes[flag]) {
+						descriptions.push(channelModes[flag]);
+					} else if (userModes[flag]) {
+						// Mixed user mode in channel mode string (rare but possible)
+						descriptions.push(userModes[flag].toLowerCase());
+					}
+				}
+
+				if (descriptions.length > 0) {
+					const action = sign === "+" ? " enabled " : " disabled ";
+					const modesList =
+						descriptions.length > 1
+							? descriptions.slice(0, -1).join(", ") +
+							  " and " +
+							  descriptions[descriptions.length - 1]
+							: descriptions[0];
+
+					return `${action} ${modesList}`;
+				}
+			}
+
+			// Fallback: return original text if no patterns matched
 			return text;
 		});
 
 		return {
-			formattedMode
+			formattedMode,
 		};
-	}
+	},
 });
 </script>
