@@ -43,6 +43,9 @@ function formatQueueMessage(text: string): string {
 	if (!queueMatch) return text;
 
 	const [, queueType, start, end, total, usersText] = queueMatch;
+	const startPos = parseInt(start);
+	const endPos = parseInt(end);
+	const totalCount = parseInt(total);
 
 	// Parse individual users - pattern: username (HH:MM:SS)
 	const userMatches = [...usersText.matchAll(/(\S+?)\s*\((\d{2}):(\d{2}):(\d{2})\)/g)];
@@ -50,7 +53,7 @@ function formatQueueMessage(text: string): string {
 	if (userMatches.length === 0) return text;
 
 	// Build formatted output
-	let formatted = `━━━ ${queueType} Queue (${total} waiting) ━━━\n`;
+	let formatted = `━━━ ${queueType} Queue (${totalCount} waiting) ━━━\n`;
 
 	userMatches.forEach((match, idx) => {
 		const [, username, hours, minutes, seconds] = match;
@@ -79,18 +82,26 @@ function formatQueueMessage(text: string): string {
 		// Yellow - moderate
 		else status = "🔴"; // Red - long wait
 
-		formatted += `${status} #${idx + 1} ${username} — ${duration}\n`;
+		// Use actual position from MouseBot's range, not idx
+		const actualPosition = startPos + idx;
+		formatted += `${status} #${actualPosition} ${username} — ${duration}\n`;
 	});
 
-	// Calculate and add average wait time
-	const avgWaitMinutes =
-		userMatches.reduce((sum, match) => {
-			const h = parseInt(match[2]);
-			const m = parseInt(match[3]);
-			return sum + (h * 60 + m);
-		}, 0) / userMatches.length;
+	// Only calculate average if this is the complete queue OR note it's partial
+	if (startPos === 1 && endPos === totalCount) {
+		// Complete queue in single message - show average
+		const avgWaitMinutes =
+			userMatches.reduce((sum, match) => {
+				const h = parseInt(match[2]);
+				const m = parseInt(match[3]);
+				return sum + (h * 60 + m);
+			}, 0) / userMatches.length;
 
-	formatted += `━━━ Avg wait: ${Math.round(avgWaitMinutes)}m ━━━`;
+		formatted += `━━━ Avg wait: ${Math.round(avgWaitMinutes)}m ━━━`;
+	} else {
+		// Partial queue (split message) - indicate range
+		formatted += `━━━ Showing ${start}-${end} of ${totalCount} ━━━`;
+	}
 
 	return formatted;
 }
