@@ -153,25 +153,23 @@ yarn build:server
 Run tests
 yarn test
 
-### Project Structure
-
-CleverLounge/
-├── client/
-│ ├── components/
-│ │ ├── ChatUserList.vue # MAM userlist grouping
-│ │ └── Username.vue # MAM badges & colors
-│ ├── css/
-│ │ └── style.css # Global MAM styling
-│ ├── themes/
-│ │ ├── discord.css # Discord theme
-│ │ └── morning.css # Light theme
-│ └── js/
-│ ├── hostmaskCache.ts # Hostmask persistence
-│ └── types.d.ts # TypeScript definitions
-├── server/
-└── shared/
-
+Project Structure
 text
+CleverLounge/
+├─── client/
+│ ├─── components/
+│ │ ├─── ChatUserList.vue # MAM userlist grouping
+│ │ └─── Username.vue # MAM badges & colors
+│ ├─── css/
+│ │ └─── style.css # Global MAM styling
+│ ├─── themes/
+│ │ ├─── discord.css # Discord theme
+│ │ └─── morning.css # Light theme
+│ └─── js/
+│ ├─── hostmaskCache.ts # Hostmask persistence
+│ └─── types.d.ts # TypeScript definitions
+├─── server/
+└─── shared/
 
 ### Key Files Modified from The Lounge
 
@@ -180,25 +178,6 @@ text
 - `client/js/types.d.ts` - Channel metadata types
 - `client/css/style.css` - MAM class colors & styling
 - `client/js/hostmaskCache.ts` - Persistent hostmask storage
-
-## 📊 PHP Analytics Dashboard
-
-CleverLounge integrates with a PHP analytics dashboard for queue monitoring:
-
-E:/
-├── CleverLounge/ # This repository
-└── htdocs/
-└── mam/
-└── dashboard/ # PHP analytics
-
-text
-
-Connect the SQLite database at `~/.thelounge/logs/*.sqlite3` to the dashboard for:
-
-- Queue wait time analysis
-- Invite window tracking (Wed/Thu & Sat/Sun)
-- Historical statistics
-- Live queue monitoring
 
 ## 🤝 Contributing
 
