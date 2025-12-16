@@ -153,32 +153,6 @@ yarn build:server
 Run tests
 yarn test
 
-Project Structure
-text
-CleverLounge/
-├─── client/
-│ ├─── components/
-│ │ ├─── ChatUserList.vue # MAM userlist grouping
-│ │ └─── Username.vue # MAM badges & colors
-│ ├─── css/
-│ │ └─── style.css # Global MAM styling
-│ ├─── themes/
-│ │ ├─── discord.css # Discord theme
-│ │ └─── morning.css # Light theme
-│ └─── js/
-│ ├─── hostmaskCache.ts # Hostmask persistence
-│ └─── types.d.ts # TypeScript definitions
-├─── server/
-└─── shared/
-
-### Key Files Modified from The Lounge
-
-- `client/components/ChatUserList.vue` - Intelligent grouping logic
-- `client/components/Username.vue` - MAM class detection & badges
-- `client/js/types.d.ts` - Channel metadata types
-- `client/css/style.css` - MAM class colors & styling
-- `client/js/hostmaskCache.ts` - Persistent hostmask storage
-
 ## 🤝 Contributing
 
 CleverLounge is a personal fork optimized for MAM IRC monitoring. If you want to:
