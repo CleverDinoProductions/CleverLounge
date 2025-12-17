@@ -374,6 +374,176 @@ const defaultConfig = {
 			}
 		},
 	},
+
+	// ============================================
+	// MESSAGE PARSER CUSTOMIZATIONS (CleverLounge)
+	// ============================================
+
+	// Master toggle for parser customizations
+	customParserEnabled: {
+		default: true,
+		sync: "always",
+		apply(store: TypedStore, value: boolean) {
+			window.dispatchEvent(new Event("resize"));
+		},
+	},
+
+	// Readable mode messages
+	readableModeMessages: {
+		default: true,
+		sync: "always",
+		apply(store: TypedStore, value: boolean) {
+			if (value) {
+				document.body.classList.add("readable-mode-messages");
+			} else {
+				document.body.classList.remove("readable-mode-messages");
+			}
+		},
+	},
+
+	// Show mode changes for specific modes
+	showVoiceMode: {
+		default: true,
+		sync: "always",
+	},
+
+	showOpMode: {
+		default: true,
+		sync: "always",
+	},
+
+	showHalfOpMode: {
+		default: true,
+		sync: "always",
+	},
+
+	showOwnerMode: {
+		default: true,
+		sync: "always",
+	},
+
+	showAdminMode: {
+		default: true,
+		sync: "always",
+	},
+
+	// Mode message styling
+	coloredModeMessages: {
+		default: true,
+		sync: "always",
+		apply(store: TypedStore, value: boolean) {
+			if (value) {
+				document.body.classList.add("colored-mode-messages");
+			} else {
+				document.body.classList.remove("colored-mode-messages");
+			}
+		},
+	},
+
+	// ============ COMPACT MODE SETTINGS ============
+
+	// Compact mode for regular user modes (+v, +o, etc.)
+	compactUserModes: {
+		default: false,
+		sync: "always",
+		apply(store: TypedStore, value: boolean) {
+			if (value) {
+				document.body.classList.add("compact-user-modes");
+			} else {
+				document.body.classList.remove("compact-user-modes");
+			}
+		},
+	},
+
+	// Show descriptive titles for user modes
+	showModeDescriptions: {
+		default: true,
+		sync: "always",
+	},
+
+	// Compact mode for MAM queue messages
+	compactQueueMessages: {
+		default: false,
+		sync: "always",
+		apply(store: TypedStore, value: boolean) {
+			if (value) {
+				document.body.classList.add("compact-queue-messages");
+			} else {
+				document.body.classList.remove("compact-queue-messages");
+			}
+		},
+	},
+
+	// Compact mode for join/part/quit messages
+	compactJoinQuit: {
+		default: false,
+		sync: "always",
+		apply(store: TypedStore, value: boolean) {
+			if (value) {
+				document.body.classList.add("compact-join-quit");
+			} else {
+				document.body.classList.remove("compact-join-quit");
+			}
+		},
+	},
+
+	// Show mode symbols alongside readable text
+	showModeSymbols: {
+		default: false,
+		sync: "always",
+	},
+
+	// Custom join/part/quit formatting
+	customJoinQuitMessages: {
+		default: true,
+		sync: "always",
+	},
+
+	showJoinHostmasks: {
+		default: true,
+		sync: "always",
+	},
+
+	// Highlight tracker class in messages
+	highlightTrackerClass: {
+		default: true,
+		sync: "always",
+	},
+
+	// Show class badges in messages (not just userlist)
+	showBadgesInMessages: {
+		default: false,
+		sync: "always",
+		apply(store: TypedStore, value: boolean) {
+			if (value) {
+				document.body.classList.add("badges-in-messages");
+			} else {
+				document.body.classList.remove("badges-in-messages");
+			}
+		},
+	},
+
+	// ============ Bot Message Formatting ============
+
+	// Format MouseBot queue messages
+	formatQueueMessages: {
+		default: true,
+		sync: "always",
+	},
+
+	// Format MineBot FLAGS listings
+	formatFlagsListing: {
+		default: true,
+		sync: "always",
+	},
+
+	// ============ MAM-Specific Features ============
+
+	// Format MAM queue text (INVITE QUEUE / SUPPORT QUEUE)
+	formatMamQueueText: {
+		default: true,
+		sync: "always",
+	},
 };
 
 export const config = normalizeConfig(defaultConfig);

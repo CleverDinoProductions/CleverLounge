@@ -10,6 +10,11 @@
 				class-name="tracker-features"
 				to="tracker-features"
 			/>
+			<SettingTabItem
+				name="Parser Customization"
+				class-name="parser-customization"
+				to="parser-customization"
+			/>
 			<SettingTabItem name="Notifications" class-name="notifications" to="notifications" />
 			<SettingTabItem name="Account" class-name="account" to="account" />
 		</ul>
@@ -75,6 +80,14 @@
 
 .settings-menu .messages::before {
 	content: "\f0e0"; /* http://fontawesome.io/icon/envelope/ */
+}
+
+.settings-menu .tracker-features::before {
+	content: "\f201"; /* https://fontawesome.io/icon/chart-bar/ */
+}
+
+.settings-menu .parser-customization::before {
+	content: "\f040"; /* https://fontawesome.io/icon/pencil/ */
 }
 
 .settings-menu .notifications::before {

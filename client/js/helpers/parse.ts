@@ -14,6 +14,7 @@ import LinkPreviewFileSize from "../../components/LinkPreviewFileSize.vue";
 import InlineChannel from "../../components/InlineChannel.vue";
 import Username from "../../components/Username.vue";
 import {ClientMessage, ClientNetwork, ClientChan} from "../types";
+import {useStore} from "../store";
 
 const emojiModifiersRegex = /[\u{1f3fb}-\u{1f3ff}]|\u{fe0f}/gu;
 
@@ -34,8 +35,44 @@ type StyledFragment = Fragment & {
 	strikethrough?: boolean;
 };
 
+// Get settings from store
+function getSettings() {
+	try {
+		const store = useStore();
+		return store.state.settings;
+	} catch (e) {
+		// Fallback if store not available
+		return {
+			customParserEnabled: true,
+			readableModeMessages: true,
+			showVoiceMode: true,
+			showOpMode: true,
+			showHalfOpMode: true,
+			showOwnerMode: true,
+			showAdminMode: true,
+			coloredModeMessages: true,
+			compactModeMessages: false,
+			showModeSymbols: false,
+			customJoinQuitMessages: true,
+			showJoinHostmasks: true,
+			compactJoinQuit: false,
+			highlightTrackerClass: true,
+			showBadgesInMessages: false,
+			formatQueueMessages: true,
+			formatFlagsListing: true,
+		};
+	}
+}
+
 // Format MouseBot queue announcements for better readability
 function formatQueueMessage(text: string): string {
+	const settings = getSettings();
+
+	// Check if queue formatting is enabled
+	if (!settings.customParserEnabled || !settings.formatQueueMessages) {
+		return text;
+	}
+
 	// Match: Inv queue (1-7 of 7): user1 (00:19:29), user2 (00:17:37), ...
 	// Also handles the weird ː character or regular colon
 	const queueMatch = text.match(/(Inv|Sup) queue \((\d+)-(\d+) of (\d+)\)[ː:](.+)/);
@@ -108,6 +145,13 @@ function formatQueueMessage(text: string): string {
 
 // Format MineBot FLAGS listing for readability
 function formatFlagsListing(text: string): string {
+	const settings = getSettings();
+
+	// Check if FLAGS formatting is enabled
+	if (!settings.customParserEnabled || !settings.formatFlagsListing) {
+		return text;
+	}
+
 	// Check if this is a FLAGS listing
 	if (!text.includes("FLAGS listing") && !text.includes("Entry Nickname/Host")) {
 		return text;
@@ -201,67 +245,126 @@ function formatFlagsListing(text: string): string {
 
 // Replace Anope FLAGS in text with readable descriptions
 function replaceFlagsInText(text: string): string {
-	const flagMap: Record<string, string> = {
+	const settings = getSettings();
+
+	// Check if custom parser is enabled
+	if (!settings.customParserEnabled || !settings.readableModeMessages) {
+		return text;
+	}
+
+	// Check if this is a mode/flags message
+	if (
+		!text.includes("set flags") &&
+		!text.includes("sets flags") &&
+		!text.includes("sets mode")
+	) {
+		return text;
+	}
+
+	const flagMap: Record<string, {readable: string; show: boolean}> = {
 		// Voice permissions
-		"+v": "VOICE PERMISSION",
-		"-v": "removes VOICE PERMISSION",
-		"+V": "AUTOMATIC VOICE",
-		"-V": "removes AUTOMATIC VOICE",
+		"+v": {readable: "VOICE on", show: settings.showVoiceMode},
+		"-v": {readable: "VOICE off", show: settings.showVoiceMode},
+		"+V": {readable: "AUTOMATIC VOICE on", show: settings.showVoiceMode},
+		"-V": {readable: "AUTOMATIC VOICE off", show: settings.showVoiceMode},
 
 		// HalfOp permissions
-		"+h": "HALFOP PERMISSION",
-		"-h": "removes HALFOP PERMISSION",
-		"+H": "AUTOMATIC HALFOP",
-		"-H": "removes AUTOMATIC HALFOP",
+		"+h": {readable: "HALFOP on", show: settings.showHalfOpMode},
+		"-h": {readable: "HALFOP off", show: settings.showHalfOpMode},
+		"+H": {readable: "AUTOMATIC HALFOP on", show: settings.showHalfOpMode},
+		"-H": {readable: "AUTOMATIC HALFOP off", show: settings.showHalfOpMode},
 
 		// Operator permissions
-		"+o": "OP PERMISSION",
-		"-o": "removes OP PERMISSION",
-		"+O": "AUTOMATIC OP",
-		"-O": "removes AUTOMATIC OP",
+		"+o": {readable: "OP on", show: settings.showOpMode},
+		"-o": {readable: "OP off", show: settings.showOpMode},
+		"+O": {readable: "AUTOMATIC OP on", show: settings.showOpMode},
+		"-O": {readable: "AUTOMATIC OP off", show: settings.showOpMode},
 
 		// Admin permissions
-		"+a": "ADMIN PERMISSION",
-		"-a": "removes ADMIN PERMISSION",
-		"+A": "AUTOMATIC ADMIN",
-		"-A": "removes AUTOMATIC ADMIN",
+		"+a": {readable: "ADMIN on", show: settings.showAdminMode},
+		"-a": {readable: "ADMIN off", show: settings.showAdminMode},
+		"+A": {readable: "AUTOMATIC ADMIN on", show: settings.showAdminMode},
+		"-A": {readable: "AUTOMATIC ADMIN off", show: settings.showAdminMode},
 
 		// Owner/Founder permissions
-		"+q": "OWNER PERMISSION",
-		"-q": "removes OWNER PERMISSION",
-		"+F": "FOUNDER ACCESS",
-		"-F": "removes FOUNDER ACCESS",
+		"+q": {readable: "OWNER on", show: settings.showOwnerMode},
+		"-q": {readable: "OWNER off", show: settings.showOwnerMode},
+		"+F": {readable: "FOUNDER ACCESS granted", show: settings.showOwnerMode},
+		"-F": {readable: "FOUNDER ACCESS removed", show: settings.showOwnerMode},
 
 		// Channel management
-		"+s": "SET PERMISSION",
-		"-s": "removes SET PERMISSION",
-		"+i": "INVITE PERMISSION",
-		"-i": "removes INVITE PERMISSION",
-		"+r": "KICK/BAN PERMISSION",
-		"-r": "removes KICK/BAN PERMISSION",
-		"+R": "RECOVER PERMISSION",
-		"-R": "removes RECOVER PERMISSION",
-		"+f": "ACCESS LIST MODIFICATION",
-		"-f": "removes ACCESS LIST MODIFICATION",
-		"+t": "TOPIC CONTROL",
-		"-t": "removes TOPIC CONTROL",
-		"+S": "SUCCESSOR STATUS",
-		"-S": "removes SUCCESSOR STATUS",
-		"+b": "AUTOMATIC KICKBAN",
-		"-b": "removes AUTOMATIC KICKBAN",
-		"+e": "BAN EXEMPTION",
-		"-e": "removes BAN EXEMPTION",
+		"+s": {readable: "SET PERMISSION granted", show: true},
+		"-s": {readable: "SET PERMISSION removed", show: true},
+		"+i": {readable: "INVITE PERMISSION granted", show: true},
+		"-i": {readable: "INVITE PERMISSION removed", show: true},
+		"+r": {readable: "KICK/BAN PERMISSION granted", show: true},
+		"-r": {readable: "KICK/BAN PERMISSION removed", show: true},
+		"+R": {readable: "RECOVER PERMISSION granted", show: true},
+		"-R": {readable: "RECOVER PERMISSION removed", show: true},
+		"+f": {readable: "ACCESS LIST MODIFICATION granted", show: true},
+		"-f": {readable: "ACCESS LIST MODIFICATION removed", show: true},
+		"+t": {readable: "TOPIC CONTROL granted", show: true},
+		"-t": {readable: "TOPIC CONTROL removed", show: true},
+		"+S": {readable: "SUCCESSOR STATUS granted", show: true},
+		"-S": {readable: "SUCCESSOR STATUS removed", show: true},
+		"+b": {readable: "AUTOMATIC KICKBAN enabled", show: true},
+		"-b": {readable: "AUTOMATIC KICKBAN disabled", show: true},
+		"+e": {readable: "BAN EXEMPTION granted", show: true},
+		"-e": {readable: "BAN EXEMPTION removed", show: true},
 	};
 
-	// Check if message contains "set flags" or "sets flags"
-	if (text.includes("set flags") || text.includes("sets flags")) {
-		// Replace each flag with readable text - using simple string replace
-		Object.keys(flagMap).forEach((flag) => {
-			// Use a simpler approach - replace all occurrences
-			while (text.includes(flag)) {
-				text = text.replace(flag, flagMap[flag]);
-			}
-		});
+	// Replace each flag with readable text
+	Object.keys(flagMap).forEach((flag) => {
+		const config = flagMap[flag];
+
+		// Skip if this mode type is disabled
+		if (!config.show) {
+			return;
+		}
+
+		// Decide what text to use
+		let replacement: string;
+		if (settings.showModeSymbols) {
+			// Show both symbol and text: "+v VOICE on"
+			replacement = `${flag} ${config.readable}`;
+		} else {
+			// Show just readable text: "VOICE on"
+			replacement = config.readable;
+		}
+
+		// Replace all occurrences
+		while (text.includes(flag)) {
+			text = text.replace(flag, replacement);
+		}
+	});
+
+	return text;
+}
+
+// Format join/part/quit messages
+function formatJoinQuitMessage(text: string, type: "join" | "part" | "quit"): string {
+	const settings = getSettings();
+
+	// Check if custom join/quit formatting is enabled
+	if (!settings.customParserEnabled || !settings.customJoinQuitMessages) {
+		return text;
+	}
+
+	// Compact mode
+	if (settings.compactJoinQuit) {
+		if (type === "join") {
+			return text.replace("has joined", "→");
+		} else if (type === "part") {
+			return text.replace("has left", "←");
+		} else if (type === "quit") {
+			return text.replace("has quit", "⇐");
+		}
+	}
+
+	// Hide hostmasks if disabled
+	if (!settings.showJoinHostmasks && type === "join") {
+		// Remove hostmask pattern (user@host.domain)
+		text = text.replace(/\s*\([^@]+@[^)]+\)/, "");
 	}
 
 	return text;
@@ -363,6 +466,21 @@ function parse(
 		return formattedFragments.map((fragment) => createFragment(fragment));
 	}
 
+	// Format join/part/quit messages based on message type
+	let finalText = cleanText;
+	if (message?.type) {
+		if (message.type === "join") {
+			finalText = formatJoinQuitMessage(cleanText, "join");
+		} else if (message.type === "part") {
+			finalText = formatJoinQuitMessage(cleanText, "part");
+		} else if (message.type === "quit") {
+			finalText = formatJoinQuitMessage(cleanText, "quit");
+		}
+	}
+
+	// Re-parse if text was modified
+	const finalFragments = finalText !== cleanText ? parseStyle(finalText) : styleFragments;
+
 	// On the plain text, find channels and URLs, returned as "parts". Parts are
 	// arrays of objects containing start and end markers, as well as metadata
 	// depending on what was found (channel or link).
@@ -370,10 +488,10 @@ function parse(
 	const userModes = network
 		? network.serverOptions.PREFIX?.prefix?.map((pref) => pref.symbol)
 		: ["!", "@", "%", "+"];
-	const channelParts = findChannels(cleanText, channelPrefixes, userModes);
-	const linkParts = findLinks(cleanText);
-	const emojiParts = findEmoji(cleanText);
-	const nameParts = findNames(cleanText, message ? message.users || [] : []);
+	const channelParts = findChannels(finalText, channelPrefixes, userModes);
+	const linkParts = findLinks(finalText);
+	const emojiParts = findEmoji(finalText);
+	const nameParts = findNames(finalText, message ? message.users || [] : []);
 
 	const parts = (channelParts as MergedParts)
 		.concat(linkParts)
@@ -382,7 +500,7 @@ function parse(
 
 	// Merge the styling information with the channels / URLs / nicks / text objects and
 	// generate HTML strings with the resulting fragments
-	return merge(parts, styleFragments, cleanText).map((textPart) => {
+	return merge(parts, finalFragments, finalText).map((textPart) => {
 		const fragments = textPart.fragments.map((fragment) => createFragment(fragment));
 
 		// Wrap these potentially styled fragments with links and channel buttons

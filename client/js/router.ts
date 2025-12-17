@@ -16,6 +16,7 @@ import GeneralSettings from "../components/Settings/General.vue";
 import AccountSettings from "../components/Settings/Account.vue";
 import NotificationSettings from "../components/Settings/Notifications.vue";
 import TrackerFeatures from "../components/Settings/TrackerFeatures.vue";
+import ParserCustomization from "../components/Settings/ParserCustomization.vue";
 import {ClientChan} from "./types";
 
 const router = createRouter({
@@ -59,6 +60,11 @@ const router = createRouter({
 					name: "Tracker Features",
 					path: "tracker-features",
 					component: TrackerFeatures,
+				},
+				{
+					name: "ParserCustomization",
+					path: "parser-customization",
+					component: ParserCustomization,
 				},
 				{
 					name: "Account",
