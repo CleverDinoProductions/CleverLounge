@@ -43,6 +43,8 @@
 						:on-hover="hoverUser"
 						:active="user.original === activeUser"
 						:user="user.original"
+						:network="channel.network"
+						:channel="channel"
 						v-html="user.string"
 					/>
 					<!-- eslint-enable -->
@@ -54,6 +56,8 @@
 						:on-hover="hoverUser"
 						:active="user === activeUser"
 						:user="user"
+						:network="channel.network"
+						:channel="channel"
 					/>
 				</template>
 			</div>
@@ -89,7 +93,7 @@ import {computed, defineComponent, nextTick, PropType, ref} from "vue";
 import type {UserInMessage} from "../../shared/types/msg";
 import type {ClientChan, ClientUser} from "../js/types";
 import {hostmaskCache} from "../js/hostmaskCache";
-import {useStore} from "../js/store"; // ADD THIS
+import {useStore} from "../js/store";
 import Username from "./Username.vue";
 
 const modes = {
@@ -125,6 +129,27 @@ const mamClassLabels: {[key: string]: string} = {
 	dev: "Developer",
 	"uploaders-c": "Uploader Coordinator",
 };
+
+// ✅ NEW: Invalid class patterns (IRC servers, not MAM classes)
+const invalidClassPatterns = [
+	/^AHIP-/i, // IRC proxy servers (AHIP-211, AHIP-R93, etc.)
+	// /^SERVICES$/i,      // IRC services
+	/^[A-Z0-9-]{5,}$/, // All uppercase/numbers/dashes = likely server name
+	/^\d+$/, // Pure numbers
+];
+
+// Helper function to check if a string is a valid MAM class
+function isValidMAMClass(className: string): boolean {
+	// Check if it matches any invalid patterns
+	if (invalidClassPatterns.some((pattern) => pattern.test(className))) {
+		return false;
+	}
+
+	// Valid MAM classes are usually lowercase or have specific patterns
+	// Accept: elite, mod, user, p-user, f-mod, etc.
+	// Reject: AHIP-211, SERVICES, etc.
+	return true;
+}
 
 // MAM Class display priority order (staff at top, regular users at bottom)
 const mamClassPriority: {[key: string]: number} = {
@@ -174,16 +199,24 @@ export default defineComponent({
 		const activeUser = ref<UserInMessage | null>();
 		const userlist = ref<HTMLDivElement>();
 
-		// ADD: Get store and settings
 		const store = useStore();
 
-		// ADD THIS DEBUG
-		console.log("🐭 ChatUserList loaded", {
-			channel: props.channel.name,
-			userCount: props.channel.users.length,
+		// ============================================
+		// NETWORK DETECTION (WITH FORCE TOGGLE!)
+		// ============================================
+		const isMAMNetwork = computed(() => {
+			// Check if force formatting is enabled
+			if (store.state.settings.forceMAMFormatting) {
+				return true; // Treat all networks as MAM
+			}
+
+			// Normal detection: check if network name contains "mam" or "myanonamouse"
+			const network = props.channel.network;
+			const networkName = network?.name?.toLowerCase() || "";
+			return networkName.includes("myanonamouse") || networkName.includes("mam");
 		});
 
-		// ADD: Access tracker feature settings
+		// Access tracker feature settings
 		const trackerFeaturesEnabled = computed(() => store.state.settings.trackerFeaturesEnabled);
 
 		const enableClassGrouping = computed(() => store.state.settings.enableClassGrouping);
@@ -192,9 +225,16 @@ export default defineComponent({
 
 		const showUserCount = computed(() => store.state.settings.showUserCount);
 
+		const forceMAMFormatting = computed(() => store.state.settings.forceMAMFormatting);
+
 		// Check if this is a queue channel
 		const isQueueChannel = computed(() => {
-			// ADD: Check if queue detection is enabled
+			// Check if on MAM network first (or force enabled)
+			if (!isMAMNetwork.value) {
+				return false;
+			}
+
+			// Check if queue detection is enabled
 			if (!trackerFeaturesEnabled.value || !enableQueueDetection.value) {
 				return false;
 			}
@@ -213,9 +253,9 @@ export default defineComponent({
 			return null;
 		});
 
-		// Extract MAM class from hostmask (same logic as Username.vue)
+		// ✅ UPDATED: Extract MAM class from hostmask with server filtering
 		const getMamClassFromHostmask = (nick: string): string | null => {
-			// ADD: Check if hostmask cache is enabled
+			// Check if hostmask cache is enabled
 			if (!trackerFeaturesEnabled.value || !store.state.settings.enableHostmaskCache) {
 				return null;
 			}
@@ -233,11 +273,43 @@ export default defineComponent({
 				return null;
 			}
 
-			// Match pattern: user@CLASS.TYPE.mam
-			const match = hostmask.match(/@([^.]+)\.([^.]+)\.mam/);
+			// ✅ FIRST: Try MAM pattern (user@CLASS.TYPE.mam)
+			const mamMatch = hostmask.match(/@([^.]+)\.([^.]+)\.mam/);
 
-			if (match) {
-				return match[1]; // Return the class (elite, mod, user, etc.)
+			if (mamMatch) {
+				const extractedClass = mamMatch[1];
+
+				// Even for .mam hostmasks, validate the class
+				if (isValidMAMClass(extractedClass)) {
+					return extractedClass;
+				}
+			}
+
+			// ✅ SECOND: If force formatting is enabled, try generic patterns
+			if (forceMAMFormatting.value) {
+				// Try pattern: user@CLASS.TYPE.anything
+				const genericMatch = hostmask.match(/@([^.]+)\.([^.]+)\./);
+
+				if (genericMatch) {
+					const extractedClass = genericMatch[1];
+
+					// ✅ FILTER OUT IRC SERVER NAMES!
+					if (isValidMAMClass(extractedClass)) {
+						return extractedClass;
+					}
+				}
+
+				// Try pattern: user@CLASS.anything (no type)
+				const simpleMatch = hostmask.match(/@([^.@]+)\./);
+
+				if (simpleMatch) {
+					const extractedClass = simpleMatch[1];
+
+					// ✅ FILTER OUT IRC SERVER NAMES!
+					if (isValidMAMClass(extractedClass)) {
+						return extractedClass;
+					}
+				}
 			}
 
 			return null;
@@ -245,7 +317,12 @@ export default defineComponent({
 
 		// Determine if we should group by MAM class
 		const shouldGroupByMAMClass = computed(() => {
-			// ADD: Check if tracker features and class grouping are enabled
+			// Check if on MAM network first (or force enabled)
+			if (!isMAMNetwork.value) {
+				return false;
+			}
+
+			// Check if tracker features and class grouping are enabled
 			if (!trackerFeaturesEnabled.value || !enableClassGrouping.value) {
 				return false;
 			}
@@ -264,7 +341,8 @@ export default defineComponent({
 			const hasMamUsers = props.channel.users.some((user) => {
 				const hostmask =
 					(user as any).hostmask || hostmaskCache.get(user.nick.toLowerCase());
-				return hostmask && hostmask.includes(".mam");
+				// Accept .mam pattern OR force is enabled
+				return hostmask && (hostmask.includes(".mam") || forceMAMFormatting.value);
 			});
 
 			if (hasMamUsers) {
@@ -422,7 +500,7 @@ export default defineComponent({
 			return modes[group] as typeof modes;
 		};
 
-		// MODIFY: Get display label for group header
+		// Get display label for group header
 		const getGroupLabel = (group: string) => {
 			// Queue-specific labels
 			if (group === "support-queue") {
@@ -437,7 +515,7 @@ export default defineComponent({
 				if (mamClassLabels[group]) {
 					let label = mamClassLabels[group];
 
-					// ADD: Show user count if enabled
+					// Show user count if enabled
 					if (showUserCount.value) {
 						const count = groupedUsers.value[group]?.length || 0;
 						label += ` (${count})`;
@@ -459,7 +537,7 @@ export default defineComponent({
 
 				let label = modeMap[group] || "IRC: " + group;
 
-				// ADD: Show user count if enabled
+				// Show user count if enabled
 				if (showUserCount.value) {
 					const count = groupedUsers.value[group]?.length || 0;
 					label += ` (${count})`;

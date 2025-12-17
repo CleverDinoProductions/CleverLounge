@@ -228,7 +228,7 @@ export default defineComponent({
 				}
 
 				// Build mode text for non-queue modes
-				let result = "sets ";
+				let result = " sets ";
 
 				// Add symbol prefix if enabled
 				if (settings.showModeSymbols) {
@@ -238,7 +238,7 @@ export default defineComponent({
 				// Add readable mode name
 				result += `${modeConfig.name}`;
 
-				// Add description if enabled and NOT in compact mode
+				// ✅ ADD DESCRIPTION IF ENABLED AND NOT IN COMPACT MODE
 				if (settings.showModeDescriptions && !settings.compactUserModes) {
 					result += ` (${modeConfig.description})`;
 				}
@@ -257,7 +257,7 @@ export default defineComponent({
 					result += `${preposition}${modeArgs}`;
 				}
 
-				return ` ${result}`;
+				return result;
 			}
 
 			// ============================================
@@ -273,7 +273,7 @@ export default defineComponent({
 				}
 
 				// Build flag text
-				let result = "sets ";
+				let result = " sets ";
 
 				if (settings.showModeSymbols) {
 					result += `${fullMode} `;
@@ -281,7 +281,7 @@ export default defineComponent({
 
 				result += `${flagConfig.name}`;
 
-				// Add description if enabled and NOT in compact mode
+				// ✅ ADD DESCRIPTION IF ENABLED AND NOT IN COMPACT MODE
 				if (settings.showModeDescriptions && !settings.compactUserModes) {
 					result += ` (${flagConfig.description})`;
 				}
@@ -298,7 +298,7 @@ export default defineComponent({
 					result += `${preposition}${modeArgs}`;
 				}
 
-				return ` ${result}`;
+				return result;
 			}
 
 			// ============================================
@@ -321,7 +321,7 @@ export default defineComponent({
 
 				// If we have descriptions, format them
 				if (descriptions.length > 0) {
-					let result = "sets ";
+					let result = " sets ";
 
 					// Add symbol prefix if enabled
 					if (settings.showModeSymbols) {
@@ -347,7 +347,7 @@ export default defineComponent({
 
 					result += `${action} ${modesList}`;
 
-					return ` ${result}`;
+					return result;
 				}
 			}
 

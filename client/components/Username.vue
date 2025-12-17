@@ -124,6 +124,20 @@ export default defineComponent({
 		const store = useStore();
 
 		// ============================================
+		// NETWORK DETECTION (WITH FORCE TOGGLE!)
+		// ============================================
+		const isMAMNetwork = computed(() => {
+			// Check if force formatting is enabled
+			if (store.state.settings.forceMAMFormatting) {
+				return true; // Treat all networks as MAM
+			}
+
+			// Normal detection: check if network name contains "mam" or "myanonamouse"
+			const networkName = props.network?.name?.toLowerCase() || "";
+			return networkName.includes("myanonamouse") || networkName.includes("mam");
+		});
+
+		// ============================================
 		// TRACKER SETTINGS
 		// ============================================
 		const trackerFeaturesEnabled = computed(() => store.state.settings.trackerFeaturesEnabled);
@@ -137,6 +151,8 @@ export default defineComponent({
 		const showClassTooltips = computed(() => store.state.settings.showClassTooltips);
 
 		const enableHostmaskCache = computed(() => store.state.settings.enableHostmaskCache);
+
+		const forceMAMFormatting = computed(() => store.state.settings.forceMAMFormatting);
 
 		// ============================================
 		// IRC MODE
@@ -167,7 +183,8 @@ export default defineComponent({
 		// HOSTMASK DETECTION
 		// ============================================
 		const getHostmask = computed(() => {
-			// Check if tracker features and cache enabled
+			// ✅ REMOVED NETWORK CHECK - Allow hostmask retrieval on all networks when force is enabled
+			// Only check if tracker features and cache enabled
 			if (!trackerFeaturesEnabled.value || !enableHostmaskCache.value) {
 				return "";
 			}
@@ -194,7 +211,7 @@ export default defineComponent({
 		// MAM CLASS DETECTION
 		// ============================================
 		const mamClass = computed(() => {
-			// Check if tracker features enabled
+			// ✅ Check if tracker features enabled first
 			if (!trackerFeaturesEnabled.value) {
 				return null;
 			}
@@ -205,15 +222,39 @@ export default defineComponent({
 				return null;
 			}
 
+			// ✅ UPDATED: Try MAM pattern first
 			// Match pattern: user@CLASS.TYPE.mam
-			// Examples: user@elite.member.mam, user@mod.staff.mam
-			const match = hostmask.match(/@([^.]+)\.([^.]+)\.mam/);
+			const mamMatch = hostmask.match(/@([^.]+)\.([^.]+)\.mam/);
 
-			if (match) {
+			if (mamMatch) {
 				return {
-					class: match[1],
-					type: match[2],
+					class: mamMatch[1],
+					type: mamMatch[2],
 				};
+			}
+
+			// ✅ NEW: If force formatting is enabled and no .mam pattern found,
+			// try to extract class from any hostmask pattern
+			if (forceMAMFormatting.value) {
+				// Try pattern: user@CLASS.TYPE.anything
+				const genericMatch = hostmask.match(/@([^.]+)\.([^.]+)\./);
+
+				if (genericMatch) {
+					return {
+						class: genericMatch[1],
+						type: genericMatch[2],
+					};
+				}
+
+				// Try pattern: user@CLASS.anything (no type)
+				const simpleMatch = hostmask.match(/@([^.@]+)\./);
+
+				if (simpleMatch) {
+					return {
+						class: simpleMatch[1],
+						type: "member", // Default type
+					};
+				}
 			}
 
 			return null;
@@ -308,7 +349,7 @@ export default defineComponent({
 				mouseketeer: "MK",
 				uploader: "UL",
 				entry: "ELS",
-				support: "Sup",
+				support: "SUP",
 				"f-mod": "F-Mod",
 				"t-mod": "T-Mod",
 				mod: "Mod",
