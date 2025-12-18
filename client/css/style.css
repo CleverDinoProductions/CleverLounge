@@ -4246,3 +4246,42 @@ body.tracker-debug .mam-class-badge::after {
 body.tracker-debug .user-group-header::before {
 	content: "🔍 ";
 }
+
+/* ============================================
+   IRC MODE COLORS (Fallback for non-MAM users)
+   ============================================ */
+
+/* Only apply to users WITHOUT mam-class */
+.user:not([data-mam-class]) {
+	/* These will use the existing IRC mode color system */
+}
+
+/* Owner (~) - Gold */
+.user.user-mode-owner:not([data-mam-class]) {
+	color: gold !important;
+}
+
+/* Admin (&) - Red */
+.user.user-mode-admin:not([data-mam-class]) {
+	color: violet !important;
+}
+
+/* Op (@) - Light Red */
+.user.user-mode-op:not([data-mam-class]) {
+	color: red !important;
+}
+
+/* Half-Op (%) - Orange */
+.user.user-mode-half-op:not([data-mam-class]) {
+	color: darkorange !important;
+}
+
+/* Voice (+) - Light Blue */
+.user.user-mode-voice:not([data-mam-class]) {
+	color: cornflowerblue !important;
+}
+
+/* Normal users - Default */
+.user.user-mode-normal:not([data-mam-class]) {
+	color: inherit;
+}

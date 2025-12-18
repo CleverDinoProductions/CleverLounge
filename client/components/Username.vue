@@ -2,6 +2,7 @@
 	<span
 		:class="[
 			'user',
+			ircModeClass,
 			nickColor(store.state.settings.coloredNicks),
 			{active: active},
 			displayClass,
@@ -143,7 +144,6 @@ export default defineComponent({
 		// TRACKER SETTINGS
 		// ============================================
 		const trackerFeaturesEnabled = computed(() => store.state.settings.trackerFeaturesEnabled);
-		const colorIRCModes = computed(() => store.state.settings.colorIRCModes);
 		const useOfficialColors = computed(() => store.state.settings.useOfficialColors);
 		const useBackgroundColors = computed(() => store.state.settings.useBackgroundColors);
 		const showClassBadges = computed(() => store.state.settings.showClassBadges);
@@ -162,14 +162,10 @@ export default defineComponent({
 			return props.user.mode;
 		});
 
-		// IRC role class (only applied when colorIRCModes is enabled)
+		// IRC mode class - ALWAYS applied (CSS controls colors)
 		const ircModeClass = computed(() => {
-			// Don't apply IRC mode colors if disabled
-			if (!colorIRCModes.value) {
-				return "";
-			}
-
 			const userMode = mode.value;
+
 			if (!userMode) return "user-mode-normal";
 
 			const modeMap: Record<string, string> = {
@@ -411,10 +407,9 @@ export default defineComponent({
 		const displayClass = computed(() => {
 			// Combine IRC mode class + MAM class
 			// CSS will handle which colors to apply based on body classes:
-			// - body.color-irc-modes → IRC mode colors
 			// - body.tracker-official-colors → MAM text colors
 			// - body.tracker-background-colors → MAM background colors
-			return `${ircModeClass.value} ${mamClassCssClass.value}`.trim();
+			return `${mamClassCssClass.value}`.trim();
 		});
 
 		// ============================================
@@ -444,6 +439,7 @@ export default defineComponent({
 
 		return {
 			mode,
+			ircModeClass,
 			displayClass,
 			mamClassIcon,
 			mamClassShort,
