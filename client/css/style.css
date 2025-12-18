@@ -3813,160 +3813,297 @@ part/quit messages where we don't load previews (adds a blank line otherwise) */
 
 
 /* ============================================
-   MAM Class Colors - Exact from Website
+   MAM CLASS COLORS - BACKGROUND STYLE
+   Controlled by body.tracker-background-colors
    ============================================ */
 
-/* Staff Classes */
-.mam-class-dev,
-.mam-class-sysop {
+/* Staff Classes - Background Colors */
+body.tracker-background-colors .user.mam-class-dev,
+body.tracker-background-colors .user.mam-class-sysop {
 	color: #FFFFFF !important;
 	background-color: #336699 !important;
-	padding: 2px 6px;
-	border-radius: 3px;
-	font-weight: 900;
+	padding: 2px 6px !important;
+	border-radius: 3px !important;
+	font-weight: 900 !important;
 }
 
-.mam-class-sr-admin {
+body.tracker-background-colors .user.mam-class-sr-admin {
 	color: #000000 !important;
 	background-color: #006600 !important;
-	padding: 2px 6px;
-	border-radius: 3px;
-	font-weight: 900;
+	padding: 2px 6px !important;
+	border-radius: 3px !important;
+	font-weight: 900 !important;
 }
 
-.mam-class-admin {
+body.tracker-background-colors .user.mam-class-admin {
 	color: #000000 !important;
 	background-color: #30AA0F !important;
-	padding: 2px 6px;
-	border-radius: 3px;
+	padding: 2px 6px !important;
+	border-radius: 3px !important;
+	font-weight: 900 !important;
+}
+
+body.tracker-background-colors .user.mam-class-uploaders-c,
+body.tracker-background-colors .user.mam-class-uploader-coord {
+	color: #FFFFFF !important;
+	background-color: #B05F3C !important;
+	padding: 2px 6px !important;
+	border-radius: 3px !important;
+	font-weight: bold !important;
+}
+
+/* Moderator Classes - Background Colors */
+body.tracker-background-colors .user.mam-class-sr-mod {
+	color: #000000 !important;
+	background-color: #FF4500 !important;
+	padding: 2px 6px !important;
+	border-radius: 3px !important;
+	font-weight: bold !important;
+}
+
+body.tracker-background-colors .user.mam-class-mod {
+	color: #000000 !important;
+	background-color: #FFA500 !important;
+	padding: 2px 6px !important;
+	border-radius: 3px !important;
+	font-weight: bold !important;
+}
+
+body.tracker-background-colors .user.mam-class-t-mod {
+	color: #000000 !important;
+	background-color: #E9967A !important;
+	padding: 2px 6px !important;
+	border-radius: 3px !important;
+	font-weight: bold !important;
+}
+
+body.tracker-background-colors .user.mam-class-f-mod {
+	color: #000000 !important;
+	background-color: #FF7F50 !important;
+	padding: 2px 6px !important;
+	border-radius: 3px !important;
+	font-weight: bold !important;
+}
+
+/* Support Staff - Background Colors */
+body.tracker-background-colors .user.mam-class-support {
+	color: #000000 !important;
+	background-color: #FF0099 !important;
+	padding: 2px 6px !important;
+	border-radius: 3px !important;
+	font-weight: bold !important;
+}
+
+body.tracker-background-colors .user.mam-class-entry {
+	color: #000000 !important;
+	background-color: #FF0A23 !important;
+	padding: 2px 6px !important;
+	border-radius: 3px !important;
+	font-weight: bold !important;
+}
+
+/* Special Member Classes - Background Colors */
+body.tracker-background-colors .user.mam-class-uploader {
+	color: #FFFFFF !important;
+	background-color: #B05F3C !important;
+	padding: 2px 6px !important;
+	border-radius: 3px !important;
+	font-weight: bold !important;
+}
+
+body.tracker-background-colors .user.mam-class-mouseketeer {
+	color: #FFFFFF !important;
+	background-color: #696969 !important;
+	padding: 2px 6px !important;
+	border-radius: 3px !important;
+	font-weight: bold !important;
+}
+
+body.tracker-background-colors .user.mam-class-supporter {
+	color: #000000 !important;
+	background-color: #BABA25 !important;
+	padding: 2px 6px !important;
+	border-radius: 3px !important;
+	font-weight: bold !important;
+}
+
+/* VIP Classes - Background Colors */
+body.tracker-background-colors .user.mam-class-elite {
+	color: #CC0 !important;
+	background-color: #3366CC !important;
+	padding: 2px 6px !important;
+	border-radius: 3px !important;
+	font-weight: bold !important;
+}
+
+body.tracker-background-colors .user.mam-class-e-vip {
+	color: #FFFFFF !important;
+	background-color: #7C2FE0 !important;
+	padding: 2px 6px !important;
+	border-radius: 3px !important;
+	font-weight: bold !important;
+}
+
+body.tracker-background-colors .user.mam-class-vip {
+	color: #FFFFFF !important;
+	background-color: #985BE8 !important;
+	padding: 2px 6px !important;
+	border-radius: 3px !important;
+	font-weight: bold !important;
+}
+
+body.tracker-background-colors .user.mam-class-p-user {
+	color: #FFFFFF !important;
+	background-color: #D21E36 !important;
+	padding: 2px 6px !important;
+	border-radius: 3px !important;
+	font-weight: bold !important;
+}
+
+/* Regular User Classes - Background Colors */
+body.tracker-background-colors .user.mam-class-user {
+	color: #000000 !important;
+	background-color: #669999 !important;
+	padding: 2px 6px !important;
+	border-radius: 3px !important;
+}
+
+body.tracker-background-colors .user.mam-class-mouse {
+	color: #000000 !important;
+	background-color: #ff43b5 !important;
+	padding: 2px 6px !important;
+	border-radius: 3px !important;
+}
+
+/* ============================================
+   MAM CLASS TEXT COLORS
+   Controlled by body.tracker-text-colors
+   ============================================ */
+
+/* Staff Classes - Text Colors */
+body.tracker-text-colors .user.mam-class-dev,
+body.tracker-text-colors .mam-class-badge.mam-class-dev {
+	color: #000 !important;
 	font-weight: 900;
 }
 
-.mam-class-uploaders-c {
-	color: #FFFFFF !important;
-	background-color: #B05F3C !important;
-	padding: 2px 6px;
-	border-radius: 3px;
+body.tracker-text-colors .user.mam-class-sysop,
+body.tracker-text-colors .mam-class-badge.mam-class-sysop {
+	color: #FFF !important;
+	font-weight: 900;
+}
+
+body.tracker-text-colors .user.mam-class-sr-admin,
+body.tracker-text-colors .mam-class-badge.mam-class-sr-admin {
+	color: #000 !important;
+	font-weight: 900;
+}
+
+body.tracker-text-colors .user.mam-class-admin,
+body.tracker-text-colors .mam-class-badge.mam-class-admin {
+	color: #000 !important;
+	font-weight: 900;
+}
+
+body.tracker-text-colors .user.mam-class-uploader-coord,
+body.tracker-text-colors .mam-class-badge.mam-class-uploader-coord,
+body.tracker-text-colors .user.mam-class-uploaders-c,
+body.tracker-text-colors .mam-class-badge.mam-class-uploaders-c {
+	color: #FFF !important;
 	font-weight: bold;
 }
 
-.mam-class-sr-mod {
-	color: #000000 !important;
-	background-color: #FF4500 !important;
-	padding: 2px 6px;
-	border-radius: 3px;
+/* Moderator Classes - Text Colors */
+body.tracker-text-colors .user.mam-class-sr-mod,
+body.tracker-text-colors .mam-class-badge.mam-class-sr-mod {
+	color: #000 !important;
 	font-weight: bold;
 }
 
-.mam-class-mod {
-	color: #000000 !important;
-	background-color: #FFA500 !important;
-	padding: 2px 6px;
-	border-radius: 3px;
+body.tracker-text-colors .user.mam-class-mod,
+body.tracker-text-colors .mam-class-badge.mam-class-mod {
+	color: #000 !important;
 	font-weight: bold;
 }
 
-.mam-class-t-mod {
-	color: #000000 !important;
-	background-color: #E9967A !important;
-	padding: 2px 6px;
-	border-radius: 3px;
+body.tracker-text-colors .user.mam-class-t-mod,
+body.tracker-text-colors .mam-class-badge.mam-class-t-mod {
+	color: #000 !important;
 	font-weight: bold;
 }
 
-.mam-class-f-mod {
-	color: #000000 !important;
-	background-color: #FF7F50 !important;
-	padding: 2px 6px;
-	border-radius: 3px;
+body.tracker-text-colors .user.mam-class-f-mod,
+body.tracker-text-colors .mam-class-badge.mam-class-f-mod {
+	color: #000 !important;
 	font-weight: bold;
 }
 
-.mam-class-support {
-	color: #000000 !important;
-	background-color: #FF0099 !important;
-	padding: 2px 6px;
-	border-radius: 3px;
+/* Support Staff - Text Colors */
+body.tracker-text-colors .user.mam-class-support,
+body.tracker-text-colors .mam-class-badge.mam-class-support {
+	color: #000 !important;
 	font-weight: bold;
 }
 
-.mam-class-entry {
-	color: #000000 !important;
-	background-color: #FF0A23 !important;
-	padding: 2px 6px;
-	border-radius: 3px;
+body.tracker-text-colors .user.mam-class-entry,
+body.tracker-text-colors .mam-class-badge.mam-class-entry {
+	color: #000 !important;
 	font-weight: bold;
 }
 
-/* Member Classes */
-.mam-class-uploader {
-	color: #FFFFFF !important;
-	background-color: #B05F3C !important;
-	padding: 2px 6px;
-	border-radius: 3px;
+/* Special Member Classes - Text Colors */
+body.tracker-text-colors .user.mam-class-uploader,
+body.tracker-text-colors .mam-class-badge.mam-class-uploader {
+	color: #FFF !important;
 	font-weight: bold;
 }
 
-.mam-class-mouseketeer {
-	color: #FFFFFF !important;
-	background-color: #696969 !important;
-	padding: 2px 6px;
-	border-radius: 3px;
+body.tracker-text-colors .user.mam-class-mouseketeer,
+body.tracker-text-colors .mam-class-badge.mam-class-mouseketeer {
+	color: #FFF !important;
 	font-weight: bold;
 }
 
-.mam-class-supporter {
-	color: #000000 !important;
-	background-color: #BABA25 !important;
-	padding: 2px 6px;
-	border-radius: 3px;
+body.tracker-text-colors .user.mam-class-supporter,
+body.tracker-text-colors .mam-class-badge.mam-class-supporter {
+	color: #000 !important;
 	font-weight: bold;
 }
 
-.mam-class-elite {
+/* VIP Classes - Text Colors */
+body.tracker-text-colors .user.mam-class-elite,
+body.tracker-text-colors .mam-class-badge.mam-class-elite {
 	color: #CC0 !important;
-	background-color: #3366CC !important;
-	padding: 2px 6px;
-	border-radius: 3px;
 	font-weight: bold;
 }
 
-.mam-class-e-vip {
-	color: #FFFFFF !important;
-	background-color: #7C2FE0 !important;
-	padding: 2px 6px;
-	border-radius: 3px;
+body.tracker-text-colors .user.mam-class-e-vip,
+body.tracker-text-colors .mam-class-badge.mam-class-e-vip {
+	color: #FFF !important;
 	font-weight: bold;
 }
 
-.mam-class-vip {
-	color: #FFFFFF !important;
-	background-color: #985BE8 !important;
-	padding: 2px 6px;
-	border-radius: 3px;
+body.tracker-text-colors .user.mam-class-vip,
+body.tracker-text-colors .mam-class-badge.mam-class-vip {
+	color: #FFF !important;
 	font-weight: bold;
 }
 
-.mam-class-p-user {
-	color: #FFFFFF !important;
-	background-color: #D21E36 !important;
-	padding: 2px 6px;
-	border-radius: 3px;
+body.tracker-text-colors .user.mam-class-p-user,
+body.tracker-text-colors .mam-class-badge.mam-class-p-user {
+	color: #FFF !important;
 	font-weight: bold;
 }
 
-.mam-class-user {
-	color: #000000 !important;
-	background-color: #669999 !important;
-	padding: 2px 6px;
-	border-radius: 3px;
+/* Regular User Classes - Text Colors */
+body.tracker-text-colors .user.mam-class-user,
+body.tracker-text-colors .mam-class-badge.mam-class-user {
+	color: #000 !important;
 }
 
-.mam-class-mouse {
-	color: #000000 !important;
-	background-color: #ff43b5 !important;
-	padding: 2px 6px;
-	border-radius: 3px;
+body.tracker-text-colors .user.mam-class-mouse,
+body.tracker-text-colors .mam-class-badge.mam-class-mouse {
+	color: #000 !important;
 }
 
 /* ============================================
@@ -3989,12 +4126,10 @@ part/quit messages where we don't load previews (adds a blank line otherwise) */
 	backdrop-filter: blur(4px);
 }
 
-/* First group header shouldn't have top margin */
 .user-mode:first-child .user-group-header {
 	margin-top: 0;
 }
 
-/* Enhance header visibility when scrolling */
 .user-group-header::before {
 	content: '';
 	position: absolute;
@@ -4008,7 +4143,7 @@ part/quit messages where we don't load previews (adds a blank line otherwise) */
 }
 
 /* ============================================
-   MAM Class Badges (inline next to usernames)
+   MAM Class Badges
    ============================================ */
 .mam-class-badge {
 	font-size: 0.75em;
@@ -4023,84 +4158,7 @@ part/quit messages where we don't load previews (adds a blank line otherwise) */
 	line-height: 1;
 }
 
-/* ============================================
-   MAM Queue-Specific Styles
-   ============================================ */
-.mam-class-support-queue {
-	color: #000000 !important;
-	background-color: #FF0099 !important;
-	padding: 2px 6px;
-	border-radius: 3px;
-	font-weight: bold;
-}
-
-.mam-class-invite-queue {
-	color: #FFFFFF !important;
-	background-color: #0066CC !important;
-	padding: 2px 6px;
-	border-radius: 3px;
-	font-weight: bold;
-}
-
-/* Highlight queue members in userlist */
-.userlist .mam-class-support-queue .user,
-.userlist .mam-class-invite-queue .user {
-	animation: pulse-queue 2s ease-in-out infinite;
-}
-
-@keyframes pulse-queue {
-
-	0%,
-	100% {
-		opacity: 1;
-	}
-
-	50% {
-		opacity: 0.7;
-	}
-}
-
-/* ============================================
-   MAM User Enhancements
-   ============================================ */
-/* Add subtle indicator for MAM users in userlist */
-.userlist .user[data-mam-class] {
-	font-weight: 500;
-	position: relative;
-}
-
-/* Left border indicator for MAM users */
-.userlist .user[data-mam-class]::before {
-	content: '';
-	position: absolute;
-	left: 0;
-	top: 2px;
-	bottom: 2px;
-	width: 3px;
-	background: currentColor;
-	opacity: 0.4;
-	border-radius: 2px;
-}
-
-/* ============================================
-   MAM Channel Indicators (optional)
-   ============================================ */
-/* Add mouse emoji to MAM-enabled channels in sidebar */
-#sidebar .chan[data-has-mam-users="true"]::before {
-	content: '🐭 ';
-	opacity: 0.6;
-	margin-right: 2px;
-	font-size: 0.9em;
-}
-
-/* Highlight MAM channels slightly */
-#sidebar .chan[data-has-mam-users="true"] {
-	border-left: 2px solid rgba(51, 102, 153, 0.3);
-}
-
-/* ============================================
-   End MAM Styles
-   ============================================ */
+/* End MAM Styles */
 
 /* ============================================
    TRACKER FEATURES - CONDITIONAL STYLES
@@ -4187,223 +4245,4 @@ body.tracker-debug .mam-class-badge::after {
 
 body.tracker-debug .user-group-header::before {
 	content: "🔍 ";
-}
-
-/* ============================================
-   CLEVERLOUNGE: TOGGLEABLE USERNAME COLORS
-   ============================================ */
-
-/* ============================================
-   IRC MODE COLORS (Text Colors)
-   Controlled by: body.color-irc-modes
-   ============================================ */
-body.color-irc-modes .user.user-mode-owner {
-	color: gold !important;
-}
-
-body.color-irc-modes .user.user-mode-admin {
-	color: violet !important;
-}
-
-body.color-irc-modes .user.user-mode-op {
-	color: red !important;
-}
-
-body.color-irc-modes .user.user-mode-half-op {
-	color: darkorange !important;
-}
-
-body.color-irc-modes .user.user-mode-voice {
-	color: cornflowerblue !important;
-}
-
-body.color-irc-modes .user.user-mode-normal {
-	color: inherit;
-}
-
-/* ============================================
-   MAM CLASS COLORS - TEXT STYLE
-   Controlled by: body.tracker-official-colors
-   Simple text colors (overrides IRC mode colors)
-   ============================================ */
-
-/* Staff - Red */
-body.tracker-official-colors .user.mam-class-dev,
-body.tracker-official-colors .user.mam-class-sysop {
-	color: gold !important;
-}
-
-body.tracker-official-colors .user.mam-class-sr-admin,
-body.tracker-official-colors .user.mam-class-admin,
-body.tracker-official-colors .user.mam-class-uploaders-c {
-	color: red !important;
-}
-
-/* Moderators - Purple */
-body.tracker-official-colors .user.mam-class-sr-mod,
-body.tracker-official-colors .user.mam-class-mod,
-body.tracker-official-colors .user.mam-class-t-mod,
-body.tracker-official-colors .user.mam-class-f-mod,
-body.tracker-official-colors .user.mam-class-support,
-body.tracker-official-colors .user.mam-class-entry {
-	color: darkorange !important;
-}
-
-/* Elite - Gold */
-body.tracker-official-colors .user.mam-class-elite {
-	color: #1abc9c !important;
-}
-
-/* VIP - Teal */
-body.tracker-official-colors .user.mam-class-vip,
-body.tracker-official-colors .user.mam-class-e-vip {
-	color: #1abc9c !important;
-}
-
-/* Power User - Blue */
-body.tracker-official-colors .user.mam-class-p-user {
-	color: #3498db !important;
-}
-
-/* Special - Orange */
-body.tracker-official-colors .user.mam-class-supporter,
-body.tracker-official-colors .user.mam-class-mouseketeer,
-body.tracker-official-colors .user.mam-class-uploader {
-	color: #e67e22 !important;
-}
-
-/* Regular Users - Gray */
-body.tracker-official-colors .user.mam-class-user,
-body.tracker-official-colors .user.mam-class-mouse {
-	color: #95a5a6 !important;
-}
-
-/* ============================================
-   MAM CLASS COLORS - BACKGROUND STYLE
-   Controlled by: body.tracker-background-colors
-   Bold colored backgrounds (your original style)
-   ============================================ */
-
-/* Staff Classes - Green Backgrounds */
-body.tracker-background-colors chat .names .user.mam-class-dev,
-body.tracker-background-colors chat .names .user.mam-class-sysop,
-body.tracker-background-colors chat .names .user.mam-class-sr-admin,
-body.tracker-background-colors chat .names .user.mam-class-admin,
-body.tracker-background-colors chat .names .user.mam-class-uploaders-c {
-	color: #000 !important;
-	background-color: #30AA0F !important;
-	font-weight: bold !important;
-	padding: 2px 4px !important;
-	border-radius: 3px !important;
-}
-
-/* Moderator Classes - Purple/Blue Backgrounds */
-body.tracker-background-colors chat .names .user.mam-class-sr-mod,
-body.tracker-background-colors chat .names .user.mam-class-mod {
-	color: #fff !important;
-	background-color: #7B68EE !important;
-	font-weight: bold !important;
-	padding: 2px 4px !important;
-	border-radius: 3px !important;
-}
-
-body.tracker-background-colors chat .names .user.mam-class-t-mod,
-body.tracker-background-colors chat .names .user.mam-class-f-mod {
-	color: #fff !important;
-	background-color: #4169E1 !important;
-	font-weight: bold !important;
-	padding: 2px 4px !important;
-	border-radius: 3px !important;
-}
-
-body.tracker-background-colors chat .names .user.mam-class-support,
-body.tracker-background-colors chat .names .user.mam-class-entry {
-	color: #000 !important;
-	background-color: #87CEEB !important;
-	font-weight: bold !important;
-	padding: 2px 4px !important;
-	border-radius: 3px !important;
-}
-
-/* Elite Class - Gold Background */
-body.tracker-background-colors chat .names .user.mam-class-elite {
-	color: #000 !important;
-	background-color: #FFD700 !important;
-	font-weight: bold !important;
-	padding: 2px 4px !important;
-	border-radius: 3px !important;
-}
-
-/* VIP Classes - Teal/Cyan Backgrounds */
-body.tracker-background-colors chat .names .user.mam-class-vip {
-	color: #000 !important;
-	background-color: #40E0D0 !important;
-	font-weight: bold !important;
-	padding: 2px 4px !important;
-	border-radius: 3px !important;
-}
-
-body.tracker-background-colors chat .names .user.mam-class-e-vip {
-	color: #000 !important;
-	background-color: #00CED1 !important;
-	font-weight: bold !important;
-	padding: 2px 4px !important;
-	border-radius: 3px !important;
-}
-
-/* Power User - Blue Background */
-body.tracker-background-colors chat .names .user.mam-class-p-user {
-	color: #fff !important;
-	background-color: #1E90FF !important;
-	font-weight: bold !important;
-	padding: 2px 4px !important;
-	border-radius: 3px !important;
-}
-
-/* Special Classes - Orange/Pink Backgrounds */
-body.tracker-background-colors chat .names .user.mam-class-supporter {
-	color: #000 !important;
-	background-color: #FF69B4 !important;
-	font-weight: bold !important;
-	padding: 2px 4px !important;
-	border-radius: 3px !important;
-}
-
-body.tracker-background-colors chat .names .user.mam-class-mouseketeer {
-	color: #fff !important;
-	background-color: #FF4500 !important;
-	font-weight: bold !important;
-	padding: 2px 4px !important;
-	border-radius: 3px !important;
-}
-
-body.tracker-background-colors chat .names .user.mam-class-uploader {
-	color: #000 !important;
-	background-color: #FFA500 !important;
-	font-weight: bold !important;
-	padding: 2px 4px !important;
-	border-radius: 3px !important;
-}
-
-/* Regular Users - Gray/White Backgrounds */
-body.tracker-background-colors chat .names .user.mam-class-user {
-	color: #000 !important;
-	background-color: #D3D3D3 !important;
-	padding: 2px 4px !important;
-	border-radius: 3px !important;
-}
-
-body.tracker-background-colors chat .names .user.mam-class-mouse {
-	color: #666 !important;
-	background-color: #F5F5F5 !important;
-	padding: 2px 4px !important;
-	border-radius: 3px !important;
-}
-
-/* ============================================
-   PRIORITY: Background colors override text colors
-   ============================================ */
-body.tracker-background-colors .user[class*="mam-class-"] {
-	/* Background style takes priority when both are enabled */
-	background: inherit !important;
 }

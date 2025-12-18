@@ -2,9 +2,9 @@ import socket from "./socket";
 import type {TypedStore} from "./store";
 
 const defaultSettingConfig = {
-	apply() {},
-	default: null,
-	sync: null,
+	apply: (() => {}) as (store: TypedStore, value: any, auto: boolean) => void,
+	default: null as any,
+	sync: null as string | null,
 };
 
 const defaultConfig = {
@@ -36,9 +36,9 @@ const defaultConfig = {
 			store.commit("refreshDesktopNotificationState", null, {root: true});
 
 			if ("Notification" in window && value && Notification.permission !== "granted") {
-				Notification.requestPermission(() =>
-					store.commit("refreshDesktopNotificationState", null, {root: true})
-				).catch((e) => {
+				Notification.requestPermission(() => {
+					store.commit("refreshDesktopNotificationState", null, {root: true});
+				}).catch((e) => {
 					console.error(e);
 				});
 			}
@@ -115,8 +115,10 @@ const defaultConfig = {
 			}
 
 			if (metaSelector) {
-				const themeColor = newTheme.themeColor || metaSelector.content;
-				metaSelector.content = themeColor;
+				const themeColor = newTheme.themeColor;
+				if (themeColor) {
+					metaSelector.content = themeColor;
+				}
 			}
 		},
 	},
@@ -129,7 +131,7 @@ const defaultConfig = {
 	userStyles: {
 		default: "",
 		apply(store: TypedStore, value: string) {
-			if (!/[?&]nocss/.test(window.location.search)) {
+			if (!/\?nocss/.test(window.location.search)) {
 				const element = document.getElementById("user-specified-css");
 
 				if (element) {
@@ -156,16 +158,6 @@ const defaultConfig = {
 		},
 	},
 
-	// Force MAM formatting on all networks
-	forceMAMFormatting: {
-		default: false,
-		sync: "always",
-		apply(store: TypedStore, value: boolean) {
-			// Trigger component re-render
-			window.dispatchEvent(new Event("resize"));
-		},
-	},
-
 	// Userlist Grouping
 	enableClassGrouping: {
 		default: true,
@@ -184,19 +176,6 @@ const defaultConfig = {
 		},
 	},
 
-	// ✅ NEW: Separate IRC mode coloring from MAM coloring
-	colorIRCModes: {
-		default: true,
-		sync: "always",
-		apply(store: TypedStore, value: boolean) {
-			if (value) {
-				document.body.classList.add("color-irc-modes");
-			} else {
-				document.body.classList.remove("color-irc-modes");
-			}
-		},
-	},
-
 	// Visual Styling
 	useOfficialColors: {
 		default: true,
@@ -211,7 +190,18 @@ const defaultConfig = {
 		},
 	},
 
-	// ✅ NEW: Background color style (bold/highlighted)
+	useTextColors: {
+		default: true,
+		sync: "always",
+		apply(store: TypedStore, value: boolean) {
+			if (value) {
+				document.body.classList.add("tracker-text-colors");
+			} else {
+				document.body.classList.remove("tracker-text-colors");
+			}
+		},
+	},
+
 	useBackgroundColors: {
 		default: false,
 		sync: "always",
@@ -389,7 +379,7 @@ const defaultConfig = {
 		apply(store: TypedStore, value: boolean) {
 			if (value) {
 				document.body.classList.add("tracker-debug");
-				console.log("🐭 CleverLounge Debug Mode Enabled");
+				console.log("CleverLounge: Debug Mode Enabled");
 			} else {
 				document.body.classList.remove("tracker-debug");
 			}
@@ -403,7 +393,7 @@ const defaultConfig = {
 		apply(store: TypedStore, value: string) {
 			try {
 				const trackers = JSON.parse(value);
-				console.log("🐭 Enabled trackers:", trackers);
+				console.log("Enabled trackers:", trackers);
 				window.dispatchEvent(new Event("resize"));
 			} catch (e) {
 				console.error("Invalid tracker configuration:", e);
@@ -476,54 +466,18 @@ const defaultConfig = {
 		},
 	},
 
-	// ============ COMPACT MODE SETTINGS ============
-
-	// Compact mode for regular user modes (+v, +o, etc.)
-	compactUserModes: {
+	compactModeMessages: {
 		default: false,
 		sync: "always",
 		apply(store: TypedStore, value: boolean) {
 			if (value) {
-				document.body.classList.add("compact-user-modes");
+				document.body.classList.add("compact-mode-messages");
 			} else {
-				document.body.classList.remove("compact-user-modes");
+				document.body.classList.remove("compact-mode-messages");
 			}
 		},
 	},
 
-	// Show descriptive titles for user modes
-	showModeDescriptions: {
-		default: true,
-		sync: "always",
-	},
-
-	// Compact mode for MAM queue messages
-	compactQueueMessages: {
-		default: false,
-		sync: "always",
-		apply(store: TypedStore, value: boolean) {
-			if (value) {
-				document.body.classList.add("compact-queue-messages");
-			} else {
-				document.body.classList.remove("compact-queue-messages");
-			}
-		},
-	},
-
-	// Compact mode for join/part/quit messages
-	compactJoinQuit: {
-		default: false,
-		sync: "always",
-		apply(store: TypedStore, value: boolean) {
-			if (value) {
-				document.body.classList.add("compact-join-quit");
-			} else {
-				document.body.classList.remove("compact-join-quit");
-			}
-		},
-	},
-
-	// Show mode symbols alongside readable text
 	showModeSymbols: {
 		default: false,
 		sync: "always",
@@ -538,6 +492,18 @@ const defaultConfig = {
 	showJoinHostmasks: {
 		default: true,
 		sync: "always",
+	},
+
+	compactJoinQuit: {
+		default: false,
+		sync: "always",
+		apply(store: TypedStore, value: boolean) {
+			if (value) {
+				document.body.classList.add("compact-join-quit");
+			} else {
+				document.body.classList.remove("compact-join-quit");
+			}
+		},
 	},
 
 	// Highlight tracker class in messages
@@ -558,34 +524,12 @@ const defaultConfig = {
 			}
 		},
 	},
-
-	// ============ Bot Message Formatting ============
-
-	// Format MouseBot queue messages
-	formatQueueMessages: {
-		default: true,
-		sync: "always",
-	},
-
-	// Format MineBot FLAGS listings
-	formatFlagsListing: {
-		default: true,
-		sync: "always",
-	},
-
-	// ============ MAM-Specific Features ============
-
-	// Format MAM queue text (INVITE QUEUE / SUPPORT QUEUE)
-	formatMamQueueText: {
-		default: true,
-		sync: "always",
-	},
 };
 
 export const config = normalizeConfig(defaultConfig);
 
 export function createState() {
-	const state = {};
+	const state: Partial<SettingsState> = {};
 
 	for (const settingName in config) {
 		state[settingName] = config[settingName].default;
@@ -598,7 +542,10 @@ function normalizeConfig(obj: any) {
 	const newConfig: Partial<typeof defaultConfig> = {};
 
 	for (const settingName in obj) {
-		newConfig[settingName] = {...defaultSettingConfig, ...obj[settingName]};
+		newConfig[settingName] = {
+			...defaultSettingConfig,
+			...obj[settingName],
+		};
 	}
 
 	return newConfig as typeof defaultConfig;

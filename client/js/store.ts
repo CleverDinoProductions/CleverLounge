@@ -356,7 +356,7 @@ const storePattern = {
 	getters,
 };
 
-// [https://vuex.vuejs.org/guide/typescript-support.html#typing-usestore-composition-function](https://vuex.vuejs.org/guide/typescript-support.html#typing-usestore-composition-function)
+// https://vuex.vuejs.org/guide/typescript-support.html#typing-usestore-composition-function
 export const key: InjectionKey<Store<State>> = Symbol();
 
 // vuex types getters as any
@@ -384,14 +384,24 @@ store.registerModule("settings", settingsStore);
 function initializeBodyClasses() {
 	const settings = store.state.settings;
 
-	// Color IRC modes
-	if (settings.colorIRCModes) {
-		document.body.classList.add("color-irc-modes");
-	}
+	// Color IRC modes - COMMENTED OUT (setting doesn't exist)
+	// if (settings.colorIRCModes) {
+	//     document.body.classList.add("color-irc-modes");
+	// }
 
 	// Use official MAM colors
 	if (settings.useOfficialColors) {
 		document.body.classList.add("tracker-official-colors");
+	}
+
+	// Use text colors (NEW)
+	if (settings.useTextColors) {
+		document.body.classList.add("tracker-text-colors");
+	}
+
+	// Use background colors
+	if (settings.useBackgroundColors) {
+		document.body.classList.add("tracker-background-colors");
 	}
 
 	// Show class badges
@@ -434,14 +444,19 @@ function initializeBodyClasses() {
 		document.body.classList.add("colored-mode-messages");
 	}
 
-	// Compact user modes
-	if (settings.compactUserModes) {
-		document.body.classList.add("compact-user-modes");
-	}
+	// Compact user modes - COMMENTED OUT (setting doesn't exist)
+	// if (settings.compactUserModes) {
+	//     document.body.classList.add("compact-user-modes");
+	// }
 
-	// Compact queue messages
-	if (settings.compactQueueMessages) {
-		document.body.classList.add("compact-queue-messages");
+	// Compact queue messages - COMMENTED OUT (setting doesn't exist)
+	// if (settings.compactQueueMessages) {
+	//     document.body.classList.add("compact-queue-messages");
+	// }
+
+	// Compact mode messages (this one exists)
+	if (settings.compactModeMessages) {
+		document.body.classList.add("compact-mode-messages");
 	}
 
 	// Compact join/quit
