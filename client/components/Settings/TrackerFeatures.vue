@@ -31,6 +31,22 @@
 			<label class="opt">
 				<input
 					type="checkbox"
+					name="forceMAMFormatting"
+					:checked="settings.forceMAMFormatting"
+					@change="
+						$emit('change', {name: 'forceMAMFormatting', value: $event.target.checked})
+					"
+				/>
+				Force MAM formatting on all networks
+			</label>
+			<p class="settings-help">
+				Apply MAM badges, colors, and grouping to all IRC networks (not just MAM). Useful if
+				you use MAM usernames on other networks like #thelounge on Libera.Chat.
+			</p>
+
+			<label class="opt">
+				<input
+					type="checkbox"
 					name="enableClassGrouping"
 					:checked="settings.enableClassGrouping"
 					@change="

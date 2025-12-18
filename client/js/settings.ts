@@ -158,6 +158,16 @@ const defaultConfig = {
 		},
 	},
 
+	// Force MAM formatting on all networks
+	forceMAMFormatting: {
+		default: false,
+		sync: "always",
+		apply(store: TypedStore, value: boolean) {
+			// Trigger component re-render
+			window.dispatchEvent(new Event("resize"));
+		},
+	},
+
 	// Userlist Grouping
 	enableClassGrouping: {
 		default: true,
