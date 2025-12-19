@@ -1,0 +1,256 @@
+@import "default.css";
+
+:root {
+	--body-bg-color: #1A1A1E;
+	/* Darker background */
+	--window-bg-color: #1A1A1E;
+	/* Darker chat area */
+	--body-color: #dbdee1;
+	/* Slightly brighter text */
+	--body-color-muted: #949ba4;
+	--date-marker-color: #5865f2;
+	/* Discord's new brand color */
+	--highlight-border-color: #5865f2;
+	--highlight-bg-color: #0F0F11;
+	--background-light-color: #4e5058;
+}
+
+body {
+	background: #1A1A1E;
+	color: #dbdee1;
+	font-size: 15px;
+	font-family:
+		'Open Sans',
+		'Helvetica Neue',
+		Helvetica,
+		Arial,
+		'Lucida Grande',
+		sans-serif;
+}
+
+.userlist,
+.chat {
+	border: none;
+}
+
+.msg.motd {
+	color: #23272a;
+}
+
+.chat {
+	scrollbar-color: #99aab5 #23272a;
+}
+
+textarea {
+	background: #36393e !important;
+	border: 0 !important;
+	color: white !important;
+}
+
+textarea::placeholder {
+	color: lightgray !important;
+}
+
+#sidebar .badge {
+	background: #f04747;
+	color: #fff;
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 12px;
+	transition: 0s;
+}
+
+#main,
+#windows .chan,
+#windows .window {
+	background: #1A1A1E;
+}
+
+#chat .sidebar {
+	background: #0F0F11;
+	border-left: none;
+}
+
+#sidebar .chan:first-child {
+	color: #7289da;
+}
+
+#sidebar .chan:first-child:hover,
+#sidebar .chan:first-child.active {
+	color: #697ec4;
+}
+
+#chat .count {
+	background: #0F0F11;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+#chat .userlist .count {
+	background: #0F0F11;
+}
+
+#chat .from {
+	border-right: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+#chat,
+#windows .header {
+	font-family:
+		'Open Sans',
+		'Helvetica Neue',
+		Helvetica,
+		Arial,
+		'Lucida Grande',
+		sans-serif;
+	font-size: 14px;
+	line-height: 1.1em;
+	color: rgba(255, 255, 255, 0.7);
+}
+
+#windows .header {
+	letter-spacing: 0.08em;
+	color: #fff;
+	border-bottom: 1px solid #303337;
+}
+
+#chat .join .text,
+#chat .kick .text,
+#chat .mode .text,
+#chat .nick .text,
+#chat .part .text,
+#chat .quit .text,
+#chat .topic .text {
+	color: rgba(255, 255, 255, 0.5);
+}
+
+#chat .user-mode::before {
+	color: rgba(255, 255, 255, 0.4);
+	border-bottom: none;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	font-weight: 400;
+}
+
+#chat a {
+	color: #0096cf;
+}
+
+/* Embeds */
+#chat .toggle-content {
+	background: rgba(0, 0, 0, 0);
+	border-left: 5px solid #f3f3f3;
+	border-left-color: rgba(243, 243, 243, 0.1);
+	border-radius: 0;
+	margin-top: 15px;
+	margin-bottom: 10px;
+}
+
+#chat .toggle-content .head {
+	color: #0096cf;
+	font-weight: 500;
+	font-size: 15px;
+}
+
+#chat.no-colors .from .user {
+	color: #fff !important;
+}
+
+#chat.no-colors .sidebar .user {
+	color: rgba(255, 255, 255, 0.6) !important;
+	margin-left: 15px;
+}
+
+#chat .search {
+	color: #fff;
+}
+
+#chat .search::-webkit-input-placeholder {
+	color: #fff;
+}
+
+#chat .search::-moz-placeholder {
+	color: #fff;
+}
+
+#chat .search:-ms-input-placeholder {
+	color: #fff;
+}
+
+#chat .search:-moz-placeholder {
+	color: #fff;
+}
+
+#sidebar .chan .name::after {
+	display: none;
+}
+
+#windows .window::before,
+#windows .chan::before {
+	display: none;
+}
+
+#windows .header .title {
+	font-weight: 700;
+	font-size: 20px;
+	display: inline-block;
+	line-height: 200%;
+	text-align: center;
+	height: 100%;
+}
+
+#form {
+	background: #1A1A1E;
+	border-top: 1px solid #0F0F11;
+}
+
+#form #input {
+	border: 2px solid rgba(255, 255, 255, 0.2);
+	background-color: rgba(255, 255, 255, 0.06);
+	border-radius: 3px;
+	padding-left: 9px !important;
+}
+
+#form #nick {
+	display: none;
+}
+
+#footer {
+	border-top: 1px solid #0F0F11;
+	left: 0 !important;
+	width: 220px !important;
+}
+
+.btn {
+	-webkit-border-radius: 3px;
+	border-radius: 3px;
+	background-color: #5865F2;
+	color: #fff;
+	border: none;
+}
+
+.btn:disabled,
+.btn:hover {
+	background-color: #4752C4;
+}
+
+#windows .window h2 {
+	color: rgba(255, 255, 255, 0.4);
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	border: none;
+	font-weight: 400;
+}
+
+.tooltipped::after {
+	color: #fff;
+	background: #7289da;
+	transition: 0s;
+}
+
+.tooltipped-n::before,
+.tooltipped-ne::before,
+.tooltipped-nw::before {
+	color: #7289da;
+	border-top-color: #7289da;
+	transition: 0s;
+}

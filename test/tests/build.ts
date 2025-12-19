@@ -36,6 +36,8 @@ describe("public folder", function () {
 		expect(fs.existsSync(path.join(publicFolder, "css", "style.css.map"))).to.be.true;
 		expect(fs.existsSync(path.join(publicFolder, "themes", "default.css"))).to.be.true;
 		expect(fs.existsSync(path.join(publicFolder, "themes", "morning.css"))).to.be.true;
+		expect(fs.existsSync(path.join(publicFolder, "themes", "discord-cleverlounge.css"))).to.be
+			.true;
 	});
 
 	it("style files contain expected content", function (done) {
