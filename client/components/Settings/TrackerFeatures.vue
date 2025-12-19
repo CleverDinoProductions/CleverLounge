@@ -103,7 +103,7 @@
 						$emit('change', {name: 'useBackgroundColors', value: $event.target.checked})
 					"
 				/>
-				Use background colors (bold style)
+				Use background colors (background)
 			</label>
 			<p class="settings-help">
 				Apply bold colored backgrounds to MAM class usernames - Discord-style highlighting.
