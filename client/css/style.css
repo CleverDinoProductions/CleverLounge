@@ -4248,40 +4248,112 @@ body.tracker-debug .user-group-header::before {
 }
 
 /* ============================================
-   IRC MODE COLORS (Fallback for non-MAM users)
+   IRC MODE COLORS - Independent from MAM
    ============================================ */
 
-/* Only apply to users WITHOUT mam-class */
-.user:not([data-mam-class]) {
-	/* These will use the existing IRC mode color system */
+/* IRC Mode Colors - CHAT MESSAGES */
+body.color-irc-modes-chat .msg .from .user.user-mode-owner {
+	color: #FFD700 !important;
+	/* Gold */
+	font-weight: 900 !important;
 }
 
-/* Owner (~) - Gold */
-.user.user-mode-owner:not([data-mam-class]) {
-	color: gold !important;
-}
-
-/* Admin (&) - Red */
-.user.user-mode-admin:not([data-mam-class]) {
+body.color-irc-modes-chat .msg .from .user.user-mode-admin {
 	color: violet !important;
+	/* Violet */
+	font-weight: 900 !important;
 }
 
-/* Op (@) - Light Red */
-.user.user-mode-op:not([data-mam-class]) {
+body.color-irc-modes-chat .msg .from .user.user-mode-op {
 	color: red !important;
+	/* Red */
+	font-weight: bold !important;
 }
 
-/* Half-Op (%) - Orange */
-.user.user-mode-half-op:not([data-mam-class]) {
+body.color-irc-modes-chat .msg .from .user.user-mode-half-op {
 	color: darkorange !important;
+	/* Dark Orange */
+	font-weight: bold !important;
 }
 
-/* Voice (+) - Light Blue */
-.user.user-mode-voice:not([data-mam-class]) {
+body.color-irc-modes-chat .msg .from .user.user-mode-voice {
 	color: cornflowerblue !important;
+	/* Cornflower Blue */
+	font-weight: 500 !important;
 }
 
-/* Normal users - Default */
-.user.user-mode-normal:not([data-mam-class]) {
-	color: inherit;
+body.color-irc-modes-chat .msg .from .user.user-mode-normal {
+	color: rgba(255, 255, 255, 0.7) !important;
+	/* Default gray */
+}
+
+/* IRC Mode Colors - USERLIST */
+body.color-irc-modes-userlist .userlist .user.user-mode-owner {
+	color: gold !important;
+	/* Gold */
+	font-weight: 900 !important;
+}
+
+body.color-irc-modes-userlist .userlist .user.user-mode-admin {
+	color: violet !important;
+	/* Violet */
+	font-weight: 900 !important;
+}
+
+body.color-irc-modes-userlist .userlist .user.user-mode-op {
+	color: red !important;
+	/* Red */
+	font-weight: bold !important;
+}
+
+body.color-irc-modes-userlist .userlist .user.user-mode-half-op {
+	color: darkorange !important;
+	/* Dark Orange */
+	font-weight: bold !important;
+}
+
+body.color-irc-modes-userlist .userlist .user.user-mode-voice {
+	color: cornflowerblue !important;
+	/* Cornflower Blue */
+	font-weight: 500 !important;
+}
+
+body.color-irc-modes-userlist .userlist .user.user-mode-normal {
+	color: rgba(255, 255, 255, 0.7) !important;
+	/* Default gray */
+}
+
+/* ============================================
+   OVERRIDE DISCORD THEME - DISABLE IRC MODE COLORS WHEN TOGGLES ARE OFF
+   Higher specificity to override theme defaults
+   ============================================ */
+
+/* When IRC mode colors are DISABLED, force random hash colors */
+body:not(.color-irc-modes-chat):not(.color-irc-modes-userlist) .user.user-mode-owner,
+body:not(.color-irc-modes-chat):not(.color-irc-modes-userlist) .user.user-mode-admin,
+body:not(.color-irc-modes-chat):not(.color-irc-modes-userlist) .user.user-mode-op,
+body:not(.color-irc-modes-chat):not(.color-irc-modes-userlist) .user.user-mode-half-op,
+body:not(.color-irc-modes-chat):not(.color-irc-modes-userlist) .user.user-mode-voice {
+	color: inherit !important;
+	font-weight: inherit !important;
+}
+
+/* When chat colors are disabled but userlist enabled, disable chat colors only */
+body:not(.color-irc-modes-chat) .msg .from .user.user-mode-owner,
+body:not(.color-irc-modes-chat) .msg .from .user.user-mode-admin,
+body:not(.color-irc-modes-chat) .msg .from .user.user-mode-op,
+body:not(.color-irc-modes-chat) .msg .from .user.user-mode-half-op,
+body:not(.color-irc-modes-chat) .msg .from .user.user-mode-voice {
+	color: inherit !important;
+	font-weight: inherit !important;
+}
+
+/* When userlist colors are disabled but chat enabled, disable userlist colors only */
+body:not(.color-irc-modes-userlist) .userlist .user.user-mode-owner,
+body:not(.color-irc-modes-userlist) .userlist .user.user-mode-admin,
+body:not(.color-irc-modes-userlist) .userlist .user.user-mode-op,
+body:not(.color-irc-modes-userlist) .userlist .user.user-mode-half-op,
+body:not(.color-irc-modes-userlist) .userlist .user.user-mode-voice {
+	color: inherit !important;
+	font-weight: inherit !important;
 }

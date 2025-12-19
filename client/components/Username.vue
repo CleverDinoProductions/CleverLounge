@@ -162,8 +162,17 @@ export default defineComponent({
 			return props.user.mode;
 		});
 
-		// IRC mode class - ALWAYS applied (CSS controls colors)
+		// ✅ FIXED: IRC mode class - ONLY applied when IRC mode color settings are enabled
 		const ircModeClass = computed(() => {
+			// Check if IRC mode colors are enabled (either chat or userlist)
+			const colorIRCModesChatMessages = store.state.settings.colorIRCModesChatMessages;
+			const colorIRCModesUserlist = store.state.settings.colorIRCModesUserlist;
+
+			// If both are disabled, don't add mode classes
+			if (!colorIRCModesChatMessages && !colorIRCModesUserlist) {
+				return "";
+			}
+
 			const userMode = mode.value;
 
 			if (!userMode) return "user-mode-normal";

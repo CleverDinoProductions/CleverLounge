@@ -92,6 +92,34 @@
 			</label>
 			<label class="opt">
 				<input
+					:checked="store.state.settings.colorIRCModesChatMessages"
+					type="checkbox"
+					name="colorIRCModesChatMessages"
+				/>
+				Color IRC modes in chat messages
+				<span
+					class="tooltipped tooltipped-n tooltipped-no-delay"
+					aria-label="Color usernames by IRC mode: ops=red, voices=blue, etc."
+				>
+					<button class="extra-help" />
+				</span>
+			</label>
+			<label class="opt">
+				<input
+					:checked="store.state.settings.colorIRCModesUserlist"
+					type="checkbox"
+					name="colorIRCModesUserlist"
+				/>
+				Color IRC modes in userlist
+				<span
+					class="tooltipped tooltipped-n tooltipped-no-delay"
+					aria-label="Color usernames in sidebar by their IRC mode (@, %, +)"
+				>
+					<button class="extra-help" />
+				</span>
+			</label>
+			<label class="opt">
+				<input
 					:checked="store.state.settings.autocomplete"
 					type="checkbox"
 					name="autocomplete"

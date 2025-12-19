@@ -15,6 +15,7 @@ import AppearanceSettings from "../components/Settings/Appearance.vue";
 import GeneralSettings from "../components/Settings/General.vue";
 import AccountSettings from "../components/Settings/Account.vue";
 import NotificationSettings from "../components/Settings/Notifications.vue";
+import IRCModeColors from "../components/Settings/IRCModeColors.vue";
 import TrackerFeatures from "../components/Settings/TrackerFeatures.vue";
 import ParserCustomization from "../components/Settings/ParserCustomization.vue";
 import {ClientChan} from "./types";
