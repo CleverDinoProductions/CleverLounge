@@ -3962,6 +3962,138 @@ body.tracker-background-colors .user.mam-class-mouse {
    ============================================ */
 
 /* Staff Classes - Text Colors */
+body.tracker-mam-text-colors .user.mam-class-dev,
+body.tracker-mam-text-colors .mam-class-badge.mam-class-dev {
+	color: #336699 !important;
+	font-weight: 900;
+}
+
+body.tracker-mam-text-colors .user.mam-class-sysop,
+body.tracker-mam-text-colors .mam-class-badge.mam-class-sysop {
+	color: #336699 !important;
+	font-weight: 900;
+}
+
+body.tracker-mam-text-colors .user.mam-class-sr-admin,
+body.tracker-mam-text-colors .mam-class-badge.mam-class-sr-admin {
+	color: #006600 !important;
+	font-weight: 900;
+}
+
+body.tracker-mam-text-colors .user.mam-class-admin,
+body.tracker-mam-text-colors .mam-class-badge.mam-class-admin {
+	color: #30AA0F !important;
+	font-weight: 900;
+}
+
+body.tracker-mam-text-colors .user.mam-class-uploader-coord,
+body.tracker-mam-text-colors .mam-class-badge.mam-class-uploader-coord,
+body.tracker-mam-text-colors .user.mam-class-uploaders-c,
+body.tracker-mam-text-colors .mam-class-badge.mam-class-uploaders-c {
+	color: #B05F3C !important;
+	font-weight: bold;
+}
+
+/* Moderator Classes - Text Colors */
+body.tracker-mam-text-colors .user.mam-class-sr-mod,
+body.tracker-mam-text-colors .mam-class-badge.mam-class-sr-mod {
+	color: #FF4500 !important;
+	font-weight: bold;
+}
+
+body.tracker-mam-text-colors .user.mam-class-mod,
+body.tracker-mam-text-colors .mam-class-badge.mam-class-mod {
+	color: #FFA500 !important;
+	font-weight: bold;
+}
+
+body.tracker-mam-text-colors .user.mam-class-t-mod,
+body.tracker-mam-text-colors .mam-class-badge.mam-class-t-mod {
+	color: #E9967A !important;
+	font-weight: bold;
+}
+
+body.tracker-mam-text-colors .user.mam-class-f-mod,
+body.tracker-text-colors .mam-class-badge.mam-class-f-mod {
+	color: #FF7F50 !important;
+	font-weight: bold;
+}
+
+/* Support Staff - Text Colors */
+body.tracker-mam-text-colors .user.mam-class-support,
+body.tracker-mam-text-colors .mam-class-badge.mam-class-support {
+	color: #FF0099 !important;
+	font-weight: bold;
+}
+
+body.tracker-mam-text-colors .user.mam-class-entry,
+body.tracker-mam-text-colors .mam-class-badge.mam-class-entry {
+	color: #FF0A23 !important;
+	font-weight: bold;
+}
+
+/* Special Member Classes - Text Colors */
+body.tracker-mam-text-colors .user.mam-class-uploader,
+body.tracker-mam-text-colors .mam-class-badge.mam-class-uploader {
+	color: #B05F3C !important;
+	font-weight: bold;
+}
+
+body.tracker-mam-text-colors .user.mam-class-mouseketeer,
+body.tracker-mam-text-colors .mam-class-badge.mam-class-mouseketeer {
+	color: #696969 !important;
+	font-weight: bold;
+}
+
+body.tracker-mam-text-colors .user.mam-class-supporter,
+body.tracker-mam-text-colors .mam-class-badge.mam-class-supporter {
+	color: #BABA25 !important;
+	font-weight: bold;
+}
+
+/* VIP Classes - Text Colors */
+body.tracker-mam-text-colors .user.mam-class-elite,
+body.tracker-mam-text-colors .mam-class-badge.mam-class-elite {
+	color: #3366CC !important;
+	font-weight: bold;
+}
+
+body.tracker-mam-text-colors .user.mam-class-e-vip,
+body.tracker-mam-text-colors .mam-class-badge.mam-class-e-vip {
+	color: #7C2FE0 !important;
+	font-weight: bold;
+}
+
+body.tracker-mam-text-colors .user.mam-class-vip,
+body.tracker-mam-text-colors .mam-class-badge.mam-class-vip {
+	color: #985BE8 !important;
+	font-weight: bold;
+}
+
+body.tracker-mam-text-colors .user.mam-class-p-user,
+body.tracker-mam-text-colors .mam-class-badge.mam-class-p-user {
+	color: #D21E36 !important;
+	font-weight: bold;
+}
+
+/* Regular User Classes - Text Colors */
+body.tracker-mam-text-colors .user.mam-class-user,
+body.tracker-mam-text-colors .mam-class-badge.mam-class-user {
+	color: #669999 !important;
+}
+
+body.tracker-mam-text-colors .user.mam-class-mouse,
+body.tracker-mam-text-colors .mam-class-badge.mam-class-mouse {
+	color: #ff43b5 !important;
+}
+
+
+/* ============================================
+   MAM CLASS TEXT COLORS
+   Controlled by body.tracker-text-colors
+   ============================================ */
+
+/* Staff Classes - Text Colors */
 body.tracker-text-colors .user.mam-class-dev,
 body.tracker-text-colors .mam-class-badge.mam-class-dev {
 	color: #000 !important;

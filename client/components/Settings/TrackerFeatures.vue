@@ -47,6 +47,22 @@
 			<label class="opt">
 				<input
 					type="checkbox"
+					name="forceUserModeColors"
+					:checked="settings.forceUserModeColors"
+					@change="
+						$emit('change', {name: 'forceUserModeColors', value: $event.target.checked})
+					"
+				/>
+				Enable User Mode Colors on MAM networks
+			</label>
+			<p class="settings-help">
+				Apply IRC user mode colors (@, %, +) even on MAM networks. Disable this to
+				prioritize MAM class colors over IRC modes.
+			</p>
+
+			<label class="opt">
+				<input
+					type="checkbox"
 					name="enableClassGrouping"
 					:checked="settings.enableClassGrouping"
 					@change="
@@ -79,6 +95,21 @@
 
 			<!-- Visual Styling -->
 			<h2 class="settings-subheading">Visual Styling</h2>
+
+			<label class="opt">
+				<input
+					type="checkbox"
+					name="useMamTextColors"
+					:checked="settings.useMamTextColors"
+					@change="
+						$emit('change', {name: 'useMamTextColors', value: $event.target.checked})
+					"
+				/>
+				Use MAM text colors
+			</label>
+			<p class="settings-help">
+				Apply MAM website text colors (Background Colors) to usernames based on MAM class
+			</p>
 
 			<label class="opt">
 				<input

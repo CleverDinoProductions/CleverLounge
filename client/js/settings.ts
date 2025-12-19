@@ -177,6 +177,18 @@ const defaultConfig = {
 	},
 
 	// Visual Styling
+	useMamTextColors: {
+		default: true,
+		sync: "always" as const,
+		apply(store: TypedStore, value: boolean) {
+			if (value) {
+				document.body.classList.add("mam-text-colors");
+			} else {
+				document.body.classList.remove("mam-text-colors");
+			}
+		},
+	},
+
 	useTextColors: {
 		default: true,
 		sync: "always" as const,
@@ -375,6 +387,15 @@ const defaultConfig = {
 
 	// Force MAM formatting on all networks
 	forceMAMFormatting: {
+		default: false,
+		sync: "always" as const,
+		apply(store: TypedStore, value: boolean) {
+			window.dispatchEvent(new Event("resize"));
+		},
+	},
+
+	// Force user mode colors even on MAM networks
+	forceUserModeColors: {
 		default: false,
 		sync: "always" as const,
 		apply(store: TypedStore, value: boolean) {

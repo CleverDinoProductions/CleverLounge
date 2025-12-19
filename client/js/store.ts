@@ -389,6 +389,11 @@ function initializeBodyClasses() {
 		document.body.classList.add("enable-class-grouping");
 	}
 
+	// Use Mam Text Colors
+	if (settings.useMamTextColors) {
+		document.body.classList.add("tracker-mam-text-colors");
+	}
+
 	// Use text colors
 	if (settings.useTextColors) {
 		document.body.classList.add("tracker-text-colors");

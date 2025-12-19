@@ -129,27 +129,34 @@ export default defineComponent({
 		// ============================================
 		// NETWORK DETECTION (WITH FORCE TOGGLE!)
 		// ============================================
-		const isMAMNetwork = computed(() => {
+		const isMAMChannel = computed(() => {
 			// Check if force formatting is enabled
 			if (store.state.settings.forceMAMFormatting) {
 				return true; // Treat all networks as MAM
 			}
 
 			// Normal detection: check if network name contains "mam" or "myanonamouse"
-			const networkName = props.network?.name?.toLowerCase() || "";
-			return networkName.includes("myanonamouse") || networkName.includes("mam");
+			const channelName = props.channel?.name || "";
+			return (
+				channelName.includes("#anonamouse.net") ||
+				channelName.includes("#am-members") ||
+				channelName.includes("#an-q") ||
+				channelName.includes("#help")
+			);
 		});
 
 		// ============================================
 		// TRACKER SETTINGS
 		// ============================================
 		const trackerFeaturesEnabled = computed(() => store.state.settings.trackerFeaturesEnabled);
+		const useMamTextColors = computed(() => store.state.settings.useMamTextColors);
 		const useTextColors = computed(() => store.state.settings.useTextColors);
 		const useBackgroundColors = computed(() => store.state.settings.useBackgroundColors);
 		const showClassBadges = computed(() => store.state.settings.showClassBadges);
 		const compactBadges = computed(() => store.state.settings.compactBadges);
 		const showClassTooltips = computed(() => store.state.settings.showClassTooltips);
 		const enableHostmaskCache = computed(() => store.state.settings.enableHostmaskCache);
+		const forceUserModeColors = computed(() => store.state.settings.forceUserModeColors);
 		const forceMAMFormatting = computed(() => store.state.settings.forceMAMFormatting);
 
 		// ============================================
@@ -171,6 +178,14 @@ export default defineComponent({
 			// If both are disabled, don't add mode classes
 			if (!colorIRCModesChatMessages && !colorIRCModesUserlist) {
 				return "";
+			}
+
+			// Check if this is a MAM channel and forceUserModeColors is disabled
+			if (isMAMChannel.value && !forceUserModeColors.value) {
+				// If any of the color settings are enabled and forceUserModeColors is disabled, don't add mode classes
+				if (useMamTextColors.value || useTextColors.value || useBackgroundColors.value) {
+					return "";
+				}
 			}
 
 			const userMode = mode.value;
@@ -287,7 +302,7 @@ export default defineComponent({
 		// MAM class CSS class (only applied when useTextColors OR useBackgroundColors is enabled)
 		const mamClassCssClass = computed(() => {
 			// Don't apply MAM class if both color systems are disabled
-			if (!useTextColors.value && !useBackgroundColors.value) {
+			if (!useMamTextColors.value || !useTextColors.value || !useBackgroundColors.value) {
 				return "";
 			}
 
