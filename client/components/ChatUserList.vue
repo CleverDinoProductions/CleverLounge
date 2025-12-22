@@ -1,3 +1,4 @@
+<!-- eslint-disable @typescript-eslint/no-unsafe-return -->
 <template>
 	<aside
 		ref="userlist"
@@ -43,7 +44,6 @@
 						:on-hover="hoverUser"
 						:active="user.original === activeUser"
 						:user="user.original"
-						:network="channel.network"
 						:channel="channel"
 						v-html="user.string"
 					/>
@@ -56,7 +56,6 @@
 						:on-hover="hoverUser"
 						:active="user === activeUser"
 						:user="user"
-						:network="channel.network"
 						:channel="channel"
 					/>
 				</template>
@@ -70,7 +69,7 @@ import {filter as fuzzyFilter} from "fuzzy";
 import {computed, defineComponent, nextTick, PropType, ref} from "vue";
 import type {UserInMessage} from "../../shared/types/msg";
 import type {ClientChan, ClientUser} from "../js/types";
-import {hostmaskCache} from "../js/hostmaskCache";
+import {hostmaskCache} from "../js/hostmaskcache";
 import {useStore} from "../js/store";
 import Username from "./Username.vue";
 
@@ -227,11 +226,20 @@ export default defineComponent({
 
 		// Get queue type for the channel
 		const getQueueType = computed(() => {
-			if (!isQueueChannel.value) return null;
+			if (!isQueueChannel.value) {
+				return null;
+			}
 
 			const channelName = props.channel.name.toLowerCase();
-			if (channelName === "#help") return "support-queue";
-			if (channelName === "#anonamouse.net") return "invite-queue";
+
+			if (channelName === "#help") {
+				return "support-queue";
+			}
+
+			if (channelName === "#anonamouse.net") {
+				return "invite-queue";
+			}
+
 			return null;
 		});
 
@@ -263,6 +271,7 @@ export default defineComponent({
 
 				// Even for .mam hostmasks, validate the class
 				if (isValidMAMClass(extractedClass)) {
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 					return extractedClass;
 				}
 			}
@@ -277,6 +286,7 @@ export default defineComponent({
 
 					// ✅ FILTER OUT IRC SERVER NAMES!
 					if (isValidMAMClass(extractedClass)) {
+						// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 						return extractedClass;
 					}
 				}
@@ -289,6 +299,7 @@ export default defineComponent({
 
 					// ✅ FILTER OUT IRC SERVER NAMES!
 					if (isValidMAMClass(extractedClass)) {
+						// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 						return extractedClass;
 					}
 				}
@@ -315,7 +326,7 @@ export default defineComponent({
 			}
 
 			// Check metadata first
-			if (props.channel.metadata?.groupBy === "mamclass") {
+			if (props.channel.data?.groupBy === "mamclass") {
 				return true;
 			}
 
@@ -333,6 +344,7 @@ export default defineComponent({
 
 			// Also check channel name patterns
 			const channelName = props.channel.name.toLowerCase();
+
 			if (
 				channelName.includes("announce") ||
 				channelName.includes("mam") ||
@@ -479,6 +491,7 @@ export default defineComponent({
 				return "mam-" + group;
 			}
 			// Return traditional mode class
+
 			return modes[group] as typeof modes;
 		};
 
@@ -488,6 +501,7 @@ export default defineComponent({
 			if (group === "support-queue") {
 				return "Support Queue";
 			}
+
 			if (group === "invite-queue") {
 				return "Invite Queue";
 			}
@@ -527,6 +541,7 @@ export default defineComponent({
 
 				return label;
 			}
+
 			return "";
 		};
 
