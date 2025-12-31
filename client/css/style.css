@@ -4470,3 +4470,96 @@ body:not(.color-irc-modes-userlist) .userlist .user.user-mode-voice {
 	color: inherit !important;
 	font-weight: inherit !important;
 }
+
+/* ============================================
+   IRCCloud-Style Join/Quit Messages
+   ============================================ */
+
+/* Base styles for all IRCCloud actions */
+.irccloud-action {
+	font-style: italic;
+	padding: 2px 6px;
+	border-radius: 3px;
+	margin: 0 4px;
+	font-weight: 500;
+}
+
+/* "nipped out" - rejoined after brief disconnect */
+.irccloud-action.nipped-out {
+	color: #ffa500;
+	/* Orange */
+	background: rgba(255, 165, 0, 0.1);
+}
+
+.irccloud-action.nipped-out::before {
+	content: "↻ ";
+	color: #ffa500;
+	font-weight: bold;
+}
+
+/* "popped in" - brief visit then left */
+.irccloud-action.popped-in {
+	color: #9b59b6;
+	/* Purple */
+	background: rgba(155, 89, 182, 0.1);
+}
+
+.irccloud-action.popped-in::before {
+	content: "⚡ ";
+	color: #9b59b6;
+}
+
+/* Normal rejoined */
+.irccloud-action.rejoined {
+	color: #43b581;
+	/* Green */
+	background: rgba(67, 181, 129, 0.1);
+}
+
+.irccloud-action.rejoined::before {
+	content: "→ ";
+	color: #43b581;
+}
+
+/* Normal quit */
+.irccloud-action.quit {
+	color: #f04747;
+	/* Red */
+	background: rgba(240, 71, 71, 0.1);
+}
+
+.irccloud-action.quit::before {
+	content: "← ";
+	color: #f04747;
+}
+
+/* Normal left (part) */
+.irccloud-action.left {
+	color: #e67e22;
+	/* Orange */
+	background: rgba(230, 126, 34, 0.1);
+}
+
+.irccloud-action.left::before {
+	content: "← ";
+	color: #e67e22;
+}
+
+/* Compact join/quit symbols (for non-IRCCloud mode) */
+.join-symbol {
+	color: #43b581;
+	font-weight: bold;
+	margin-left: 4px;
+}
+
+.quit-symbol {
+	color: #f04747;
+	font-weight: bold;
+	margin-left: 4px;
+}
+
+.part-symbol {
+	color: #ffa500;
+	font-weight: bold;
+	margin-left: 4px;
+}

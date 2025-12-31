@@ -431,6 +431,19 @@ const defaultConfig = {
 		},
 	},
 
+	// IRCCloud-style join/quit messages with timing detection
+	ircCloudStyle: {
+    	default: false,
+    	sync: "always",
+    	apply(store: TypedStore, value: boolean) {
+        	if (value) {
+            	document.body.classList.add("irccloud-style");
+        	} else {
+            	document.body.classList.remove("irccloud-style");
+        	}
+    	},
+	},
+
 	// Readable mode messages
 	readableModeMessages: {
 		default: true,

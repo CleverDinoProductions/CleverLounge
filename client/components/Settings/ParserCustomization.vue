@@ -179,6 +179,18 @@
 			<!-- Join/Part/Quit Messages -->
 			<h2 class="settings-subheading">Join/Part/Quit Messages</h2>
 
+			<!-- IRCCloud Style Toggle -->
+			<label class="opt">
+    			<input
+        			type="checkbox"
+        			name="ircCloudStyle"
+        			:checked="settings.ircCloudStyle"
+        			@change="onChange"
+    			/>
+    			IRCCloud-style messages
+			</label>
+			<p class="settings-help">Show "nipped out" for quick reconnects and "popped in" for brief visits</p>
+
 			<label class="opt">
 				<input
 					type="checkbox"
