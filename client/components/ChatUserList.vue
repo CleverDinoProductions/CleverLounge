@@ -85,6 +85,7 @@ const modes = {
 
 // MAM Class labels (tracker user classes)
 const mamClassLabels: {[key: string]: string} = {
+	webirc: "WebIRC Gateway",
 	mouse: "Mouse",
 	user: "User",
 	"p-user": "Power User",
@@ -150,6 +151,7 @@ const mamClassPriority: {[key: string]: number} = {
 	"p-user": 17,
 	user: 18,
 	mouse: 19,
+	webirc: 20,
 	// Queue-specific groups
 	"support-queue": 50,
 	"invite-queue": 51,
@@ -274,6 +276,10 @@ export default defineComponent({
 					// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 					return extractedClass;
 				}
+			}
+
+			if (hostmask.startsWith("lounge-user@")) {
+				return "webirc";
 			}
 
 			// ✅ SECOND: If force formatting is enabled, try generic patterns

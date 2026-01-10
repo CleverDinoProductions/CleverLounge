@@ -4563,3 +4563,10 @@ body:not(.color-irc-modes-userlist) .userlist .user.user-mode-voice {
 	font-weight: bold;
 	margin-left: 4px;
 }
+
+.mam-class-webirc {
+	color: #4fc3f7 !important;
+	/* Bright blue text */
+	background: linear-gradient(to right, #e1f5fe, #b3e5fc) !important;
+	border-left: 3px solid #29b6f6;
+}

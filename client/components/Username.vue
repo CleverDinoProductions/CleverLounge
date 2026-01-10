@@ -96,6 +96,7 @@ import colorClass from "../js/helpers/colorClass";
 import type {ClientChan, ClientNetwork} from "../js/types";
 import {useStore} from "../js/store";
 import {hostmaskCache, updateCache} from "../js/hostmaskcache";
+import {web} from "webpack";
 
 type UsernameUser = Partial<UserInMessage> & {
 	mode?: string;
@@ -258,6 +259,14 @@ export default defineComponent({
 				};
 			}
 
+			// Detect lounge-user@* webirc (MAM webirc gateway users)
+			if (hostmask.startsWith("lounge-user@")) {
+				return {
+					class: "webirc",
+					type: "gateway",
+				};
+			}
+
 			// If force formatting is enabled, try generic patterns
 			if (forceMAMFormatting.value) {
 				// Try pattern: user@CLASS.TYPE.anything
@@ -324,6 +333,7 @@ export default defineComponent({
 			if (!mamClass.value) return "";
 
 			const icons: Record<string, string> = {
+				webirc: "🌐",
 				mouse: "🐭",
 				user: "👤",
 				"p-user": "⚡",
@@ -354,6 +364,7 @@ export default defineComponent({
 			if (!mamClass.value) return "";
 
 			const names: Record<string, string> = {
+				webirc: "WebIRC Gateway",
 				mouse: "Mouse",
 				user: "User",
 				"p-user": "Power User",
@@ -384,6 +395,7 @@ export default defineComponent({
 			if (!mamClass.value) return "";
 
 			const shorts: Record<string, string> = {
+				webirc: "WebIRC",
 				mouse: "Mouse",
 				user: "User",
 				"p-user": "PU",
