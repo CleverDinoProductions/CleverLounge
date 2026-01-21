@@ -41,12 +41,6 @@ const config: webpack.Configuration = {
 	},
 	resolve: {
 		extensions: [".ts", ".js", ".vue"],
-		alias: {
-			"socket.io-parser": path.resolve(
-				__dirname,
-				"node_modules/socket.io-parser/build/cjs/index.js"
-			),
-		},
 	},
 	module: {
 		rules: [
