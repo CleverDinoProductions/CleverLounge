@@ -30,6 +30,17 @@ export default <IrcEventHandler>function (irc, network) {
 			);
 		}
 
+		if (network.irc.network.cap.enabled.includes("monitor-notify")) {
+			// MONITOR is supported, it will auto-track users as they join
+			client.emit("network:info", {
+				uuid: network.uuid,
+				// @ts-expect-error: serverOptions is intentionally added for extended info
+				serverOptions: {
+					MONITOR: network.irc.network.cap.enabled.includes("monitor-notify"),
+				},
+			});
+		}
+
 		// Always restore away message for this network
 		if (network.awayMessage) {
 			irc.raw("AWAY", network.awayMessage);

@@ -433,15 +433,15 @@ const defaultConfig = {
 
 	// IRCCloud-style join/quit messages with timing detection
 	ircCloudStyle: {
-    	default: false,
-    	sync: "always",
-    	apply(store: TypedStore, value: boolean) {
-        	if (value) {
-            	document.body.classList.add("irccloud-style");
-        	} else {
-            	document.body.classList.remove("irccloud-style");
-        	}
-    	},
+		default: false,
+		sync: "always",
+		apply(store: TypedStore, value: boolean) {
+			if (value) {
+				document.body.classList.add("irccloud-style");
+			} else {
+				document.body.classList.remove("irccloud-style");
+			}
+		},
 	},
 
 	// Readable mode messages
@@ -633,6 +633,18 @@ const defaultConfig = {
 				document.body.classList.add("color-irc-modes-userlist");
 			} else {
 				document.body.classList.remove("color-irc-modes-userlist");
+			}
+		},
+	},
+
+	showStatusIcons: {
+		default: false,
+		sync: "always" as const,
+		apply(store: TypedStore, value: boolean) {
+			if (value) {
+				document.body.classList.add("show-status-icons");
+			} else {
+				document.body.classList.remove("show-status-icons");
 			}
 		},
 	},

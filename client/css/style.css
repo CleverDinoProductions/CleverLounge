@@ -4576,3 +4576,57 @@ body:not(.color-irc-modes-userlist) .userlist .user.user-mode-voice {
 	background: linear-gradient(to right, #e1f5fe, #b3e5fc) !important;
 	border-left: 3px solid #29b6f6;
 }
+
+/* ================================
+   MONITOR STATUS ICONS
+   ================================ */
+
+/* Status icon visibility */
+body:not(.show-status-icons) .status-icon {
+	display: none !important;
+}
+
+/* Status icon in userlist */
+.userlist .user .status-icon {
+	margin-right: 6px;
+}
+
+/* Status icon in chat messages */
+.msg .from .user .status-icon {
+	margin-right: 4px;
+}
+
+/* Status colors - Online */
+.status-online .status-dot {
+	background-color: #43b581;
+	box-shadow: 0 0 3px rgba(67, 181, 129, 0.5);
+}
+
+/* Status colors - Away */
+.status-away .status-dot {
+	background-color: #faa61a;
+	box-shadow: 0 0 3px rgba(250, 166, 26, 0.5);
+}
+
+/* Status colors - Offline (dimmed) */
+.status-offline .status-dot {
+	background-color: #747f8d;
+	opacity: 0.4;
+}
+
+/* Animation for status changes */
+@keyframes statusPulse {
+
+	0%,
+	100% {
+		transform: scale(1);
+	}
+
+	50% {
+		transform: scale(1.2);
+	}
+}
+
+.status-icon.status-changed .status-dot {
+	animation: statusPulse 0.5s ease-in-out;
+}

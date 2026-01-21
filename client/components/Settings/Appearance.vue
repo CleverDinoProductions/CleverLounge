@@ -118,6 +118,25 @@
 					<button class="extra-help" />
 				</span>
 			</label>
+		</div>
+
+		<h2 class="settings-subheading">User Status</h2>
+		<div>
+			<label class="opt">
+				<input
+					type="checkbox"
+					name="showStatusIcons"
+					:checked="store.state.settings.showStatusIcons"
+				/>
+				Show user status icons (MONITOR)
+			</label>
+			<p class="settings-help">
+				Display online/away/offline status indicators next to usernames in chat and
+				userlist. Requires IRC server MONITOR support.
+			</p>
+		</div>
+
+		<div>
 			<label class="opt">
 				<input
 					:checked="store.state.settings.autocomplete"
@@ -187,6 +206,21 @@
 <style>
 textarea#user-specified-css-input {
 	height: 100px;
+}
+
+.settings-subheading {
+	margin-top: 30px;
+	margin-bottom: 15px;
+	font-size: 1.2rem;
+	font-weight: 600;
+	color: #ddd;
+}
+
+.settings-help {
+	margin: 5px 0 15px 25px;
+	font-size: 0.9rem;
+	color: #999;
+	line-height: 1.4;
 }
 </style>
 
