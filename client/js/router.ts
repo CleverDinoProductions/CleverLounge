@@ -18,6 +18,7 @@ import NotificationSettings from "../components/Settings/Notifications.vue";
 import IRCModeColors from "../components/Settings/IRCModeColors.vue";
 import TrackerFeatures from "../components/Settings/TrackerFeatures.vue";
 import ParserCustomization from "../components/Settings/ParserCustomization.vue";
+import IdleStatus from "../components/Windows/IdleStatus.vue";
 import {ClientChan} from "./types";
 
 const router = createRouter({
@@ -105,6 +106,12 @@ const router = createRouter({
 			path: "/chan-:id/search",
 			component: SearchResults,
 		},
+		//{
+		//	name: "IdleStatus",
+		//	path: "/chan-:id/idle-status",
+		//	component: IdleStatus,
+		//	props: true,
+		//},
 	],
 });
 

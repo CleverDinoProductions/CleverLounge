@@ -136,6 +136,138 @@
 			</p>
 		</div>
 
+		<!-- ============================================ -->
+		<!-- USER ACTIVITY TRACKING - IDLE MONITORING -->
+		<!-- ============================================ -->
+		<h2 class="settings-subheading">User Activity Tracking</h2>
+		<div>
+			<label class="opt">
+				<input
+					type="checkbox"
+					name="showIdleTracking"
+					:checked="store.state.settings.showIdleTracking"
+				/>
+				Show idle status tracking window
+			</label>
+			<p class="settings-help">
+				Display a dedicated window showing user idle times and connection status using WHOIS
+				data. Updates automatically every 60-90 seconds.
+			</p>
+		</div>
+
+		<!-- Idle tracking options (shown only when enabled) -->
+		<template v-if="store.state.settings.showIdleTracking">
+			<div>
+				<label class="opt">
+					<label for="idleRefreshInterval">Auto-refresh interval (seconds):</label>
+					<input
+						id="idleRefreshInterval"
+						type="number"
+						name="idleRefreshInterval"
+						:value="store.state.settings.idleRefreshInterval"
+						min="30"
+						max="300"
+						class="input"
+						style="width: 100px; margin-left: 10px"
+					/>
+				</label>
+				<p class="settings-help">
+					How often to automatically refresh idle data (30-300 seconds recommended).
+				</p>
+			</div>
+
+			<div>
+				<label class="opt">
+					<label for="idleWarningThreshold">Idle warning threshold (seconds):</label>
+					<input
+						id="idleWarningThreshold"
+						type="number"
+						name="idleWarningThreshold"
+						:value="store.state.settings.idleWarningThreshold"
+						min="60"
+						max="3600"
+						class="input"
+						style="width: 100px; margin-left: 10px"
+					/>
+				</label>
+				<p class="settings-help">
+					Mark users as "idle" when inactive for this many seconds (e.g., 600 = 10
+					minutes).
+				</p>
+			</div>
+
+			<div>
+				<label class="opt">
+					<input
+						type="checkbox"
+						name="showIdleInUserlist"
+						:checked="store.state.settings.showIdleInUserlist"
+					/>
+					Show idle time in userlist
+				</label>
+				<p class="settings-help">
+					Display idle time next to usernames in the channel userlist sidebar.
+				</p>
+			</div>
+
+			<div>
+				<label class="opt">
+					<input
+						type="checkbox"
+						name="compactIdleDisplay"
+						:checked="store.state.settings.compactIdleDisplay"
+					/>
+					Compact idle display
+				</label>
+				<p class="settings-help">Use shorter format like "5m" instead of "5 minutes".</p>
+			</div>
+
+			<div>
+				<label class="opt">
+					<input
+						type="checkbox"
+						name="highlightActiveUsers"
+						:checked="store.state.settings.highlightActiveUsers"
+					/>
+					Highlight recently active users
+				</label>
+				<p class="settings-help">
+					Show green indicator for users with idle time less than 60 seconds.
+				</p>
+			</div>
+
+			<div>
+				<label class="opt">
+					<input
+						type="checkbox"
+						name="showConnectionTime"
+						:checked="store.state.settings.showConnectionTime"
+					/>
+					Show connection time
+				</label>
+				<p class="settings-help">
+					Display when users connected to IRC (e.g., "Connected 5h ago").
+				</p>
+			</div>
+
+			<div>
+				<label class="opt">
+					<input
+						type="checkbox"
+						name="autoRefreshIdle"
+						:checked="store.state.settings.autoRefreshIdle"
+					/>
+					Auto-refresh idle data
+				</label>
+				<p class="settings-help">
+					Automatically refresh idle data in the background without manual intervention.
+				</p>
+			</div>
+		</template>
+		<!-- ============================================ -->
+		<!-- END: USER ACTIVITY TRACKING -->
+		<!-- ============================================ -->
+
 		<div>
 			<label class="opt">
 				<input
@@ -221,6 +353,15 @@ textarea#user-specified-css-input {
 	font-size: 0.9rem;
 	color: #999;
 	line-height: 1.4;
+}
+
+/* Idle tracking input styling */
+.opt input[type="number"].input {
+	background: var(--body-bg-color);
+	border: 1px solid #5865f2;
+	color: var(--body-color);
+	padding: 4px 8px;
+	border-radius: 4px;
 }
 </style>
 

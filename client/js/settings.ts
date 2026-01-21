@@ -648,6 +648,85 @@ const defaultConfig = {
 			}
 		},
 	},
+
+	// ============================================
+	// USER ACTIVITY TRACKING - IDLE MONITORING
+	// ============================================
+
+	// Show idle status tracking window
+	showIdleTracking: {
+		default: false,
+		sync: "always" as const,
+		apply(store: TypedStore, value: boolean) {
+			if (value) {
+				document.body.classList.add("show-idle-tracking");
+			} else {
+				document.body.classList.remove("show-idle-tracking");
+			}
+		},
+	},
+
+	// Auto-refresh interval for idle data (in seconds)
+	idleRefreshInterval: {
+		default: 90,
+		sync: "always" as const,
+	},
+
+	// Idle warning threshold (in seconds) - users idle longer than this are marked as "warning"
+	idleWarningThreshold: {
+		default: 600, // 10 minutes
+		sync: "always" as const,
+	},
+
+	// Show idle time in userlist next to usernames
+	showIdleInUserlist: {
+		default: false,
+		sync: "always" as const,
+		apply(store: TypedStore, value: boolean) {
+			if (value) {
+				document.body.classList.add("show-idle-in-userlist");
+			} else {
+				document.body.classList.remove("show-idle-in-userlist");
+			}
+		},
+	},
+
+	// Compact idle display (shorter format like "5m" instead of "5 minutes")
+	compactIdleDisplay: {
+		default: true,
+		sync: "always" as const,
+	},
+
+	// Auto-refresh idle data in background (without opening DM windows)
+	autoRefreshIdle: {
+		default: true,
+		sync: "always" as const,
+	},
+
+	// Highlight recently active users (idle < 60 seconds)
+	highlightActiveUsers: {
+		default: true,
+		sync: "always" as const,
+		apply(store: TypedStore, value: boolean) {
+			if (value) {
+				document.body.classList.add("highlight-active-users");
+			} else {
+				document.body.classList.remove("highlight-active-users");
+			}
+		},
+	},
+
+	// Show connection time in idle window
+	showConnectionTime: {
+		default: true,
+		sync: "always" as const,
+	},
+
+	// Sort idle window by activity (most active first) instead of idle time
+	sortByActivity: {
+		default: false,
+		sync: "always" as const,
+	},
 };
 
 export const config = normalizeConfig(defaultConfig);
