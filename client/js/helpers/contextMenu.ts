@@ -308,6 +308,32 @@ export function generateUserContextMenu(
 		});
 	};
 
+	const who = () => {
+		const chan = network.channels.find((c) => c.name === user.nick);
+
+		if (chan) {
+			switchToChannel(chan);
+		}
+
+		socket.emit("input", {
+			target: channel.id,
+			text: "/who " + user.nick,
+		});
+	};
+
+	const whowas = () => {
+		const chan = network.channels.find((c) => c.name === user.nick);
+
+		if (chan) {
+			switchToChannel(chan);
+		}
+
+		socket.emit("input", {
+			target: channel.id,
+			text: "/whowas " + user.nick,
+		});
+	};
+
 	const items: ContextMenuItem[] = [
 		{
 			label: user.modes.join("") + user.nick,
@@ -319,10 +345,22 @@ export function generateUserContextMenu(
 			type: "divider",
 		},
 		{
-			label: "User information",
+			label: "User information (whois command)",
 			type: "item",
 			class: "action-whois",
 			action: whois,
+		},
+		{
+			label: "User Information (who command)",
+			type: "item",
+			class: "action-who",
+			action: who,
+		},
+		{
+			label: "User Information (whowas command)",
+			type: "item",
+			class: "action-whowas",
+			action: whowas,
 		},
 		{
 			label: "Ignore user",

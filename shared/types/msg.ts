@@ -92,6 +92,8 @@ export type SharedMsg = {
 	raw_modes?: any;
 	when?: Date;
 	whois?: any;
+	who?: any;
+	whowas?: any;
 
 	users: string[];
 
