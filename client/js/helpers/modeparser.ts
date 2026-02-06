@@ -28,7 +28,7 @@ export const parseIrcMode = (text: string, settings: any, networkName = "", chan
 		p: "private",
 		k: "key protected",
 		l: "user limit",
-		r: "registered only",
+		r: "channel registered",
 		c: "no colors",
 		C: "no CTCPs",
 		S: "SSL only",
@@ -38,6 +38,7 @@ export const parseIrcMode = (text: string, settings: any, networkName = "", chan
 		z: "TLS only",
 		j: "join throttle",
 		P: "persistent channel",
+		R: "registered only",
 	};
 
 	const userModes: Record<string, any> = {
@@ -85,6 +86,11 @@ export const parseIrcMode = (text: string, settings: any, networkName = "", chan
 			show: settings.showOperMode,
 		},
 		B: {name: "BOT", description: "marked as bot account", show: settings.showBotMode},
+		c: {
+			name: "NO COLOR",
+			description: "cannot use colors in messages",
+			show: settings.showNoColorMode,
+		},
 	};
 
 	const anopeFlags: Record<string, any> = {
