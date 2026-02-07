@@ -196,48 +196,107 @@ export default <IrcEventHandler>function (irc, network) {
 	}
 
 	if (Config.values.debug.raw) {
-		// Create a dedicated Raw IRC channel on first connection
-		let rawChannel = network.channels.find((c) => c.name === "Raw IRC");
+		// 1. Define the debug channels
+		const debugCategories = {
+			general: {name: "Raw IRC", topic: "General Raw IRC messages"},
+			ping: {name: "Debug: Ping", topic: "PING/PONG connection checks"},
+			motd: {name: "Debug: MOTD", topic: "Message of the Day (372, 375, 376)"},
+			lists: {name: "Debug: Lists", topic: "Names, Who, and User lists (353, 366, 352, etc)"},
+			ctcp: {name: "Debug: CTCP", topic: "CTCP Version and Time requests"},
+		};
 
-		if (!rawChannel) {
-			rawChannel = client.createChannel({
-				type: ChanType.LOBBY,
-				name: "Raw IRC",
-				topic: "Raw IRC protocol messages for debugging",
-			});
+		const chanMap: Record<string, any> = {};
 
-			client.emit("join", {
-				network: network.uuid,
-				chan: rawChannel.getFilteredClone(true),
-				shouldOpen: false,
-				index: network.addChannel(rawChannel),
-			});
+		// 2. Create/Join channels
+		for (const [key, info] of Object.entries(debugCategories)) {
+			let chan = network.channels.find((c) => c.name === info.name);
 
-			rawChannel.loadMessages(client, network);
+			if (!chan) {
+				chan = client.createChannel({
+					type: ChanType.QUERY,
+					name: info.name,
+					topic: info.topic,
+				});
+
+				client.emit("join", {
+					network: network.uuid,
+					chan: chan.getFilteredClone(true),
+					shouldOpen: false,
+					index: network.addChannel(chan),
+				});
+
+				chan.loadMessages(client, network);
+			}
+			chanMap[key] = chan;
 		}
 
-		(network as any).rawChannel = rawChannel;
-		log.info(`Raw IRC handler registered for network: ${network.name}`);
+		log.info(`Advanced Raw IRC handlers registered for network: ${network.name}`);
 
-		// Redirect raw IRC messages to the dedicated channel AND log to file
+		// 3. The Router Logic
 		irc.on("raw", function (message) {
-			const chan = (network as any).rawChannel || network.getLobby();
 			const rawLine = message.line || "";
-			const direction = message.from_server ? "<<" : ">>";
 
-			// Push to UI channel
-			chan.pushMessage(
+			// --- MANUAL COMMAND PARSING ---
+			// IRC Line structure: [:Prefix] COMMAND [Params]
+			// We split by space. If the first part starts with ':', the command is the 2nd part.
+			// Otherwise, the command is the 1st part.
+			const parts = rawLine.split(" ");
+			let command = "";
+
+			if (parts[0].startsWith(":")) {
+				command = (parts[1] || "").toUpperCase();
+			} else {
+				command = (parts[0] || "").toUpperCase();
+			}
+
+			let targetChan = chanMap["general"];
+			let isSpam = false;
+
+			// --- ROUTING LOGIC ---
+
+			// A. PING / PONG
+			if (command === "PING" || command === "PONG") {
+				targetChan = chanMap["ping"];
+				isSpam = true;
+			}
+
+			// B. MOTD (Message of the Day)
+			else if (["372", "375", "376", "422"].includes(command)) {
+				targetChan = chanMap["motd"];
+			}
+
+			// C. LISTS (Names, Who, Whois, Counts)
+			else if (
+				["353", "366", "352", "315", "265", "266", "251", "252", "254", "255"].includes(
+					command
+				)
+			) {
+				targetChan = chanMap["lists"];
+			}
+
+			// D. CTCP
+			else if (rawLine.includes("\x01")) {
+				targetChan = chanMap["ctcp"];
+			}
+
+			// --- END ROUTING ---
+
+			if (!targetChan) targetChan = network.getLobby();
+
+			targetChan.pushMessage(
 				client,
 				new Msg({
 					self: !message.from_server,
-					type: MessageType.MONOSPACE_BLOCK,
+					type: MessageType.RAW,
 					text: rawLine,
 				}),
 				true
 			);
 
-			// Log to file
-			logToFile(network.name, rawLine, direction);
+			if (!isSpam) {
+				const direction = message.from_server ? "<<" : ">>";
+				logToFile(network.name, rawLine, direction);
+			}
 		});
 	}
 
