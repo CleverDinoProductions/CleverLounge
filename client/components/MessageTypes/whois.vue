@@ -23,13 +23,26 @@
 				<dt>Actual host:</dt>
 				<dd class="hostmask">
 					<a
-						:href="'https://ipinfo.io/' + message.whois.actual_ip"
+						:href="'https://proxycheck.io/lookup/' + message.whois.actual_ip"
 						target="_blank"
 						rel="noopener"
 						>{{ message.whois.actual_ip }}</a
 					>
 					<i v-if="message.whois.actual_hostname != message.whois.actual_ip">
 						({{ message.whois.actual_hostname }})</i
+					>
+				</dd>
+			</template>
+			<template v-if="message.whois.hostname">
+				<dt>Host:</dt>
+				<dd class="hostmask">
+					<a
+						:href="
+							'https://bgp.he.net/search?search%5Bsearch%5D=' + message.whois.hostname
+						"
+						target="_blank"
+						rel="noopener"
+						>{{ message.whois.hostname }}</a
 					>
 				</dd>
 			</template>

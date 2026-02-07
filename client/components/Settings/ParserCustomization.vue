@@ -58,8 +58,8 @@
 			</label>
 			<p class="settings-help">Display both "+v" and "VOICE on" (e.g., "+v VOICE on")</p>
 
-			<!-- Mode Type Toggles -->
-			<h3 class="settings-subsubheading">Show Specific Mode Types</h3>
+			<!-- Channel Operator Mode Type Toggles -->
+			<h3 class="settings-subsubheading">Channel Operator Modes</h3>
 
 			<label class="opt">
 				<input
@@ -115,6 +115,205 @@
 				/>
 				Show admin (&) mode changes
 			</label>
+
+			<!-- IRC User Modes (Self-Applied) -->
+			<h3 class="settings-subsubheading">IRC User Modes</h3>
+			<p class="settings-help" style="margin-left: 0; margin-top: -5px">
+				These modes are applied to users themselves (not channel-specific roles)
+			</p>
+
+			<!-- Privacy & Visibility -->
+			<label class="opt">
+				<input
+					type="checkbox"
+					name="showInvisibleMode"
+					:checked="settings.showInvisibleMode"
+					:disabled="!settings.readableModeMessages"
+					@change="onChange"
+				/>
+				Show invisible (+i) mode changes
+			</label>
+			<p class="settings-help">
+				Display when users set invisible mode - hides them from global user lists
+			</p>
+
+			<label class="opt">
+				<input
+					type="checkbox"
+					name="showCloakMode"
+					:checked="settings.showCloakMode"
+					:disabled="!settings.readableModeMessages"
+					@change="onChange"
+				/>
+				Show cloaked host (+x) mode changes
+			</label>
+			<p class="settings-help">
+				Display when users enable hostname cloaking - replaces real IP with hashed version
+			</p>
+
+			<label class="opt">
+				<input
+					type="checkbox"
+					name="showHideChanMode"
+					:checked="settings.showHideChanMode"
+					:disabled="!settings.readableModeMessages"
+					@change="onChange"
+				/>
+				Show hidden channels (+I) mode changes
+			</label>
+			<p class="settings-help">Display when users hide their channel list from WHOIS</p>
+
+			<!-- Connection & Security -->
+			<label class="opt">
+				<input
+					type="checkbox"
+					name="showSSLMode"
+					:checked="settings.showSSLMode"
+					:disabled="!settings.readableModeMessages"
+					@change="onChange"
+				/>
+				Show SSL connection (+z) mode changes
+			</label>
+			<p class="settings-help">
+				Display SSL/TLS connection status - automatically set by server
+			</p>
+
+			<label class="opt">
+				<input
+					type="checkbox"
+					name="showRegMode"
+					:checked="settings.showRegMode"
+					:disabled="!settings.readableModeMessages"
+					@change="onChange"
+				/>
+				Show registered (+r) mode changes
+			</label>
+			<p class="settings-help">
+				Display when users authenticate with services - shows nickname is registered
+			</p>
+
+			<label class="opt">
+				<input
+					type="checkbox"
+					name="showVhostMode"
+					:checked="settings.showVhostMode"
+					:disabled="!settings.readableModeMessages"
+					@change="onChange"
+				/>
+				Show virtual host (+t) mode changes
+			</label>
+			<p class="settings-help">
+				Display when users receive custom vanity hostnames from server
+			</p>
+
+			<!-- Operator Modes -->
+			<label class="opt">
+				<input
+					type="checkbox"
+					name="showOperMode"
+					:checked="settings.showOperMode"
+					:disabled="!settings.readableModeMessages"
+					@change="onChange"
+				/>
+				Show IRC operator (+o) mode changes
+			</label>
+			<p class="settings-help">Display when users gain or lose global IRC operator status</p>
+
+			<label class="opt">
+				<input
+					type="checkbox"
+					name="showHideOperMode"
+					:checked="settings.showHideOperMode"
+					:disabled="!settings.readableModeMessages"
+					@change="onChange"
+				/>
+				Show hidden oper (+H) mode changes
+			</label>
+			<p class="settings-help">
+				Display when IRC operators hide their oper status from WHOIS
+			</p>
+
+			<label class="opt">
+				<input
+					type="checkbox"
+					name="showWallopsMode"
+					:checked="settings.showWallopsMode"
+					:disabled="!settings.readableModeMessages"
+					@change="onChange"
+				/>
+				Show wallops (+w) mode changes
+			</label>
+			<p class="settings-help">
+				Display when users enable receiving WALLOPS - global oper announcements
+			</p>
+
+			<!-- Message Control -->
+			<label class="opt">
+				<input
+					type="checkbox"
+					name="showRegOnlyMode"
+					:checked="settings.showRegOnlyMode"
+					:disabled="!settings.readableModeMessages"
+					@change="onChange"
+				/>
+				Show registered-only (+R) mode changes
+			</label>
+			<p class="settings-help">Display when users block messages from unregistered nicks</p>
+
+			<label class="opt">
+				<input
+					type="checkbox"
+					name="showPrivDeafMode"
+					:checked="settings.showPrivDeafMode"
+					:disabled="!settings.readableModeMessages"
+					@change="onChange"
+				/>
+				Show private deaf (+D) mode changes
+			</label>
+			<p class="settings-help">
+				Display when users block all private messages except from opers
+			</p>
+
+			<label class="opt">
+				<input
+					type="checkbox"
+					name="showNoCTCPMode"
+					:checked="settings.showNoCTCPMode"
+					:disabled="!settings.readableModeMessages"
+					@change="onChange"
+				/>
+				Show no CTCP (+T) mode changes
+			</label>
+			<p class="settings-help">
+				Display when users block CTCP requests (VERSION, PING, etc.)
+			</p>
+
+			<label class="opt">
+				<input
+					type="checkbox"
+					name="showCallerIDMode"
+					:checked="settings.showCallerIDMode"
+					:disabled="!settings.readableModeMessages"
+					@change="onChange"
+				/>
+				Show caller ID (+g) mode changes
+			</label>
+			<p class="settings-help">
+				Display when users enable PM whitelist - only approved users can message
+			</p>
+
+			<!-- Bot Modes -->
+			<label class="opt">
+				<input
+					type="checkbox"
+					name="showBotMode"
+					:checked="settings.showBotMode"
+					:disabled="!settings.readableModeMessages"
+					@change="onChange"
+				/>
+				Show bot (+B) mode changes
+			</label>
+			<p class="settings-help">Display when users mark themselves as bots - shows in WHOIS</p>
 
 			<!-- Compact Mode Settings -->
 			<h2 class="settings-subheading">Compact Mode</h2>
@@ -181,15 +380,17 @@
 
 			<!-- IRCCloud Style Toggle -->
 			<label class="opt">
-    			<input
-        			type="checkbox"
-        			name="ircCloudStyle"
-        			:checked="settings.ircCloudStyle"
-        			@change="onChange"
-    			/>
-    			IRCCloud-style messages
+				<input
+					type="checkbox"
+					name="ircCloudStyle"
+					:checked="settings.ircCloudStyle"
+					@change="onChange"
+				/>
+				IRCCloud-style messages
 			</label>
-			<p class="settings-help">Show "nipped out" for quick reconnects and "popped in" for brief visits</p>
+			<p class="settings-help">
+				Show "nipped out" for quick reconnects and "popped in" for brief visits
+			</p>
 
 			<label class="opt">
 				<input

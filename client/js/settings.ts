@@ -483,6 +483,81 @@ const defaultConfig = {
 		sync: "always" as const,
 	},
 
+	// Privacy & Visibility
+	showInvisibleMode: {
+		default: true,
+		sync: "always" as const,
+	},
+
+	showCloakMode: {
+		default: true,
+		sync: "always" as const,
+	},
+
+	showHideChanMode: {
+		default: true,
+		sync: "always" as const,
+	},
+
+	// Connection & Security
+	showSSLMode: {
+		default: false, // Usually automatic/not interesting
+		sync: "always" as const,
+	},
+
+	showRegMode: {
+		default: true,
+		sync: "always" as const,
+	},
+
+	showVhostMode: {
+		default: true,
+		sync: "always" as const,
+	},
+
+	// Operator Modes
+	showOperMode: {
+		default: true,
+		sync: "always" as const,
+	},
+
+	showHideOperMode: {
+		default: true,
+		sync: "always" as const,
+	},
+
+	showWallopsMode: {
+		default: true,
+		sync: "always" as const,
+	},
+
+	// Message Control
+	showRegOnlyMode: {
+		default: true,
+		sync: "always" as const,
+	},
+
+	showPrivDeafMode: {
+		default: true,
+		sync: "always" as const,
+	},
+
+	showNoCTCPMode: {
+		default: true,
+		sync: "always" as const,
+	},
+
+	showCallerIDMode: {
+		default: true,
+		sync: "always" as const,
+	},
+
+	// Bot Mode
+	showBotMode: {
+		default: true,
+		sync: "always" as const,
+	},
+
 	// Mode message styling
 	coloredModeMessages: {
 		default: true,
