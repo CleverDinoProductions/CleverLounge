@@ -198,7 +198,7 @@ export default <IrcEventHandler>function (irc, network) {
 	if (Config.values.debug.raw) {
 		// 1. Define the debug channels
 		const debugCategories = {
-			general: {name: "Raw IRC", topic: "General Raw IRC messages"},
+			general: {name: "Debug: Main", topic: "General Raw IRC messages"},
 			ping: {name: "Debug: Ping", topic: "PING/PONG connection checks"},
 			motd: {name: "Debug: MOTD", topic: "Message of the Day (372, 375, 376)"},
 			lists: {name: "Debug: Lists", topic: "Names, Who, and User lists (353, 366, 352, etc)"},
