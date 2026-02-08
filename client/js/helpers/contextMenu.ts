@@ -5,6 +5,7 @@ import {switchToChannel} from "../router";
 import {TypedStore} from "../store";
 import useCloseChannel from "../hooks/use-close-channel";
 import {ChanType} from "../../../shared/types/chan";
+import {use} from "chai";
 
 type BaseContextMenuItem = {
 	label: string;
@@ -340,6 +341,26 @@ export function generateUserContextMenu(
 			type: "item",
 			class: "user",
 			action: whois,
+		},
+		{
+			label: "Copy nickname",
+			type: "item",
+			class: "copy-nick",
+			action() {
+				navigator.clipboard.writeText(user.nick).catch((err) => {
+					// eslint-disable-next-line no-console
+					console.error("Failed to copy nickname to clipboard", err);
+				});
+			},
+		},
+		{
+			label: user.modes.length > 0 ? `User modes: ${user.modes.join("")}` : "No user modes",
+			type: "item",
+			class: "user-modes",
+			action() {
+				// No action needed, this is just informational
+			},
+			link: undefined,
 		},
 		{
 			type: "divider",
