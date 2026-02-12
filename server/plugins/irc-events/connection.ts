@@ -18,14 +18,25 @@ if (!fs.existsSync(logDir)) {
 }
 
 // Helper function to log any message to file
-function logToFile(networkName: string, text: string, prefix: string = "**") {
-	const logFile = path.join(logDir, `${networkName.replace(/[^a-z0-9]/gi, "_")}.log`);
+// Updated to support categories (e.g. network-ping.log, network-motd.log)
+function logToFile(
+	networkName: string,
+	text: string,
+	prefix: string = "**",
+	category: string = "general"
+) {
+	const cleanNetwork = networkName.replace(/[^a-z0-9]/gi, "_");
+	const cleanCategory = category.replace(/[^a-z0-9]/gi, "-").toLowerCase();
+
+	// Generates: /logs/raw-irc/NetworkName-debug-motd.log
+	const logFile = path.join(logDir, `${cleanNetwork}-${cleanCategory}.log`);
+
 	const timestamp = new Date().toISOString();
 	const logLine = `[${timestamp}] ${prefix} ${text}\n`;
 
 	fs.appendFile(logFile, logLine, (err) => {
 		if (err) {
-			log.error(`Failed to write log for ${networkName}: ${err}`);
+			log.error(`Failed to write log for ${networkName} (${category}): ${err}`);
 		}
 	});
 }
@@ -198,7 +209,7 @@ export default <IrcEventHandler>function (irc, network) {
 	if (Config.values.debug.raw) {
 		// 1. Define the debug channels
 		const debugCategories = {
-			general: {name: "Debug: Main", topic: "General Raw IRC messages"},
+			general: {name: "Raw IRC", topic: "General Raw IRC messages"},
 			ping: {name: "Debug: Ping", topic: "PING/PONG connection checks"},
 			motd: {name: "Debug: MOTD", topic: "Message of the Day (372, 375, 376)"},
 			lists: {name: "Debug: Lists", topic: "Names, Who, and User lists (353, 366, 352, etc)"},
@@ -237,52 +248,45 @@ export default <IrcEventHandler>function (irc, network) {
 			const rawLine = message.line || "";
 
 			// --- MANUAL COMMAND PARSING ---
-			// IRC Line structure: [:Prefix] COMMAND [Params]
-			// We split by space. If the first part starts with ':', the command is the 2nd part.
-			// Otherwise, the command is the 1st part.
+			// IRCv3 Line structure: [@tags] [:Source] COMMAND [Params]
+
 			const parts = rawLine.split(" ");
-			let command = "";
+			let index = 0;
 
-			if (parts[0].startsWith(":")) {
-				command = (parts[1] || "").toUpperCase();
-			} else {
-				command = (parts[0] || "").toUpperCase();
-			}
+			// 1. Skip Tags (start with @)
+			if (parts[index] && parts[index].startsWith("@")) index++;
 
-			let targetChan = chanMap["general"];
-			let isSpam = false;
+			// 2. Skip Source (starts with :)
+			if (parts[index] && parts[index].startsWith(":")) index++;
+
+			// 3. The Command is the next part
+			const command = (parts[index] || "").toUpperCase();
 
 			// --- ROUTING LOGIC ---
+			// Determine the category key (general, ping, motd, etc)
+			let categoryKey = "general";
 
-			// A. PING / PONG
 			if (command === "PING" || command === "PONG") {
-				targetChan = chanMap["ping"];
-				isSpam = true;
-			}
-
-			// B. MOTD (Message of the Day)
-			else if (["372", "375", "376", "422"].includes(command)) {
-				targetChan = chanMap["motd"];
-			}
-
-			// C. LISTS (Names, Who, Whois, Counts)
-			else if (
+				categoryKey = "ping";
+			} else if (["372", "375", "376", "422"].includes(command)) {
+				categoryKey = "motd";
+			} else if (
 				["353", "366", "352", "315", "265", "266", "251", "252", "254", "255"].includes(
 					command
 				)
 			) {
-				targetChan = chanMap["lists"];
+				categoryKey = "lists";
+			} else if (rawLine.includes("\x01")) {
+				categoryKey = "ctcp";
 			}
 
-			// D. CTCP
-			else if (rawLine.includes("\x01")) {
-				targetChan = chanMap["ctcp"];
-			}
+			// --- PUSH & LOG ---
 
-			// --- END ROUTING ---
-
+			// 1. Get the channel for this category
+			let targetChan = chanMap[categoryKey];
 			if (!targetChan) targetChan = network.getLobby();
 
+			// 2. Push to UI
 			targetChan.pushMessage(
 				client,
 				new Msg({
@@ -293,10 +297,10 @@ export default <IrcEventHandler>function (irc, network) {
 				true
 			);
 
-			if (!isSpam) {
-				const direction = message.from_server ? "<<" : ">>";
-				logToFile(network.name, rawLine, direction);
-			}
+			// 3. Log to separate files
+			// Uses the new category argument to split files
+			const direction = message.from_server ? "<<" : ">>";
+			logToFile(network.name, rawLine, direction, categoryKey);
 		});
 	}
 
