@@ -67,6 +67,7 @@ export default defineComponent({
 					const modePart = text.split(" ")[0];
 
 					let currentSign = "";
+
 					for (const char of modePart) {
 						if (char === "+" || char === "-") {
 							currentSign = char;
