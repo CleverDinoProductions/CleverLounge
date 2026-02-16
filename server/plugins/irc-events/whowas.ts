@@ -40,26 +40,4 @@ export default <IrcEventHandler>function (irc, network) {
 
 		chan.pushMessage(client, msg);
 	}
-
-	function updateUserIdleData(nick: string, idleSeconds: number, signonTime: number) {
-		network.channels.forEach((chan) => {
-			const user = chan.findUser(nick);
-			if (user) {
-				(user as any).idleData = {
-					idleSeconds,
-					signonTime,
-					lastUpdated: Date.now(),
-				};
-			}
-		});
-
-		network.channels.forEach((chan) => {
-			const user = chan.findUser(nick);
-			if (user) {
-				client.emit("users", {
-					chan: chan.id,
-				});
-			}
-		});
-	}
 };
