@@ -53,6 +53,7 @@ const events = [
 	"welcome",
 	"who",
 	"whois",
+	"whowas",
 ];
 
 type ClientPushSubscription = {

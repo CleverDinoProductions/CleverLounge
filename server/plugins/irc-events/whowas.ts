@@ -8,11 +8,10 @@ import log from "../../log";
 export default <IrcEventHandler>function (irc, network) {
 	const client = this;
 
-	irc.on("who", handleWho);
+	irc.on("whowas", handleWhowas);
 
-	function handleWho(data) {
-		// WHO target is often a channel or a mask
-		let chan = network.getChannel(data.target);
+	function handleWhowas(data) {
+		let chan = network.getChannel(data.nick);
 
 		if (typeof chan === "undefined") {
 			if (data.error) {
@@ -20,7 +19,7 @@ export default <IrcEventHandler>function (irc, network) {
 			} else {
 				chan = client.createChannel({
 					type: ChanType.QUERY,
-					name: data.target,
+					name: data.nick,
 				});
 
 				client.emit("join", {
@@ -35,36 +34,28 @@ export default <IrcEventHandler>function (irc, network) {
 		}
 
 		const msg = new Msg({
-			type: MessageType.WHO,
-			who: data,
+			type: MessageType.WHOWAS,
+			whowas: data,
 		});
-
-		// Update user metadata (Away status, etc.) from WHO reply flags
-		if (data.users && Array.isArray(data.users)) {
-			data.users.forEach((whoUser) => {
-				updateUserFromWho(whoUser);
-			});
-		}
 
 		chan.pushMessage(client, msg);
 	}
 
-	// ========== USER DATA UPDATE FUNCTIONS ==========
-
-	function updateUserFromWho(whoUser: any) {
+	function updateUserIdleData(nick: string, idleSeconds: number, signonTime: number) {
 		network.channels.forEach((chan) => {
-			const user = chan.findUser(whoUser.nick);
+			const user = chan.findUser(nick);
 			if (user) {
-				// H = Here, G = Gone (Away)
-				const isAway = whoUser.flags.includes("G");
-
-				(user as any).whoData = {
-					away: isAway,
-					account: whoUser.account || null, // Modern IRCv3 account
-					realname: whoUser.realname,
+				(user as any).idleData = {
+					idleSeconds,
+					signonTime,
 					lastUpdated: Date.now(),
 				};
+			}
+		});
 
+		network.channels.forEach((chan) => {
+			const user = chan.findUser(nick);
+			if (user) {
 				client.emit("users", {
 					chan: chan.id,
 				});
