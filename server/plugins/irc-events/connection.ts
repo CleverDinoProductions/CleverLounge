@@ -9,6 +9,9 @@ import Helper from "../../helper";
 import Config from "../../config";
 import {MessageType} from "../../../shared/types/msg";
 import {ChanType, ChanState} from "../../../shared/types/chan";
+import kick from "./kick";
+import nick from "./nick";
+import e from "express";
 
 // Create raw IRC log directory
 const logDir = path.join(Helper.getHomePath(), "logs", "raw-irc");
@@ -209,11 +212,22 @@ export default <IrcEventHandler>function (irc, network) {
 	if (Config.values.debug.raw) {
 		// 1. Define the debug channels
 		const debugCategories = {
-			general: {name: "Raw IRC", topic: "General Raw IRC messages"},
+			general: {name: "Debug: Main", topic: "General Raw IRC messages"},
 			ping: {name: "Debug: Ping", topic: "PING/PONG connection checks"},
+			join: {name: "Debug: Join", topic: "User Join messages"},
+			part: {name: "Debug: Part", topic: "User Part messages"},
+			quit: {name: "Debug: Quit", topic: "User Quit messages"},
+			kick: {name: "Debug: Kicks", topic: "KICK messages and related info"},
+			nick: {name: "Debug: Nick Changes", topic: "NICK messages and related info"},
+			privMsg: {name: "Debug: Messages", topic: "PRIVMSG Messages"},
+			mode: {name: "Debug: Mode", topic: "Mode change messages"},
+			notice: {name: "Debug: Notices", topic: "NOTICE messages"},
 			motd: {name: "Debug: MOTD", topic: "Message of the Day (372, 375, 376)"},
 			lists: {name: "Debug: Lists", topic: "Names, Who, and User lists (353, 366, 352, etc)"},
 			ctcp: {name: "Debug: CTCP", topic: "CTCP Version and Time requests"},
+			errors: {name: "Debug: Errors", topic: "Error numerics (400-599)"},
+			who: {name: "Debug: Who/Whois", topic: "Detailed user information and lookup replies"},
+			accounts: {name: "Debug: Accounts", topic: "Account-notify and SASL messages"},
 		};
 
 		const chanMap: Record<string, any> = {};
@@ -248,57 +262,85 @@ export default <IrcEventHandler>function (irc, network) {
 			const rawLine = message.line || "";
 
 			// --- MANUAL COMMAND PARSING ---
-			// IRCv3 Line structure: [@tags] [:Source] COMMAND [Params]
-
 			const parts = rawLine.split(" ");
 			let index = 0;
 
-			// 1. Skip Tags (start with @)
-			if (parts[index] && parts[index].startsWith("@")) index++;
+			if (parts[index] && parts[index].startsWith("@")) index++; // Skip Tags
+			if (parts[index] && parts[index].startsWith(":")) index++; // Skip Source
 
-			// 2. Skip Source (starts with :)
-			if (parts[index] && parts[index].startsWith(":")) index++;
-
-			// 3. The Command is the next part
 			const command = (parts[index] || "").toUpperCase();
 
 			// --- ROUTING LOGIC ---
-			// Determine the category key (general, ping, motd, etc)
 			let categoryKey = "general";
 
-			if (command === "PING" || command === "PONG") {
+			// 1. Priority Checks (CTCP & Errors)
+			if (rawLine.includes("\x01")) {
+				categoryKey = "ctcp"; // Must be before PRIVMSG/NOTICE
+			} else if (/^[45]\d\d$/.test(command)) {
+				categoryKey = "errors"; // Catches 401, 404, 433, 500, etc.
+			}
+			// 2. Standard Commands
+			else if (command === "PING" || command === "PONG") {
 				categoryKey = "ping";
+			} else if (
+				["311", "312", "313", "317", "318", "319", "352", "315", "330", "369"].includes(
+					command
+				)
+			) {
+				categoryKey = "who";
+			} else if (["ACCOUNT", "900", "903", "904", "AUTHENTICATE"].includes(command)) {
+				categoryKey = "accounts";
 			} else if (["372", "375", "376", "422"].includes(command)) {
 				categoryKey = "motd";
+			} else if (command === "JOIN") {
+				categoryKey = "join";
+			} else if (command === "PART") {
+				categoryKey = "part";
+			} else if (command === "QUIT") {
+				categoryKey = "quit";
+			} else if (command === "KICK") {
+				categoryKey = "kick";
+			} else if (command === "NICK") {
+				categoryKey = "nick";
+			} else if (command === "PRIVMSG") {
+				categoryKey = "privMsg";
+			} else if (command === "MODE") {
+				categoryKey = "mode";
+			} else if (command === "NOTICE") {
+				categoryKey = "notice";
 			} else if (
 				["353", "366", "352", "315", "265", "266", "251", "252", "254", "255"].includes(
 					command
 				)
 			) {
 				categoryKey = "lists";
-			} else if (rawLine.includes("\x01")) {
-				categoryKey = "ctcp";
 			}
 
 			// --- PUSH & LOG ---
-
-			// 1. Get the channel for this category
 			let targetChan = chanMap[categoryKey];
-			if (!targetChan) targetChan = network.getLobby();
 
-			// 2. Push to UI
-			targetChan.pushMessage(
-				client,
-				new Msg({
-					self: !message.from_server,
-					type: MessageType.RAW,
-					text: rawLine,
-				}),
-				true
-			);
+			// 🛑 THE BUG FIX:
+			// Only fall back to the Lobby if we haven't found a specific debug channel.
+			// If categoryKey is NOT "general", it means we've successfully routed it
+			// to a specific debug channel, so we don't want it in the Lobby anymore.
+			if (!targetChan && categoryKey === "general") {
+				targetChan = network.getLobby();
+			}
 
-			// 3. Log to separate files
-			// Uses the new category argument to split files
+			// Only push if we have a target (this prevents double-posting to Lobby)
+			if (targetChan) {
+				targetChan.pushMessage(
+					client,
+					new Msg({
+						self: !message.from_server,
+						type: MessageType.RAW,
+						text: rawLine,
+					}),
+					true
+				);
+			}
+
+			// Log to separate files (keep this as is)
 			const direction = message.from_server ? "<<" : ">>";
 			logToFile(network.name, rawLine, direction, categoryKey);
 		});
