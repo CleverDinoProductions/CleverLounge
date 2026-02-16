@@ -34,6 +34,8 @@ class Msg {
 	raw_modes!: any;
 	when!: Date;
 	whois!: any;
+	who!: any;
+	whowas!: any;
 	users!: string[];
 	statusmsgGroup!: string;
 	params!: string[];
@@ -85,6 +87,8 @@ class Msg {
 			case MessageType.MODE_USER:
 			case MessageType.RAW:
 			case MessageType.WHOIS:
+			case MessageType.WHOWAS:
+			case MessageType.WHO:
 			case MessageType.PLUGIN:
 				return false;
 			default:
