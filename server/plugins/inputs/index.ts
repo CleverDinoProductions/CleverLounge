@@ -69,7 +69,9 @@ const builtInInputs = [
 	"raw",
 	"rejoin",
 	"topic",
+	"who",
 	"whois",
+	"whowas",
 	"mute",
 ];
 
