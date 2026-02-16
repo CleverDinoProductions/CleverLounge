@@ -56,6 +56,11 @@ export default <IrcEventHandler>function (irc, network) {
 			if (data.idle !== undefined && data.logon !== undefined) {
 				updateUserIdleData(data.nick, data.idle, data.logon);
 			}
+
+			// Also update account status if present in WHOIS
+			if (data.account) {
+				updateUserAccount(data.nick, data.account);
+			}
 		}
 
 		chan.pushMessage(client, msg);
@@ -63,20 +68,14 @@ export default <IrcEventHandler>function (irc, network) {
 
 	// ========== USER DATA UPDATE FUNCTIONS ==========
 
-	function updateUserFromWho(whoUser: any) {
+	function updateUserAccount(nick: string, account: string | null) {
 		network.channels.forEach((chan) => {
-			const user = chan.findUser(whoUser.nick);
+			const user = chan.findUser(nick);
 			if (user) {
-				// H = Here, G = Gone (Away)
-				const isAway = whoUser.flags.includes("G");
+				// Attach the account name to the user object
+				(user as any).account = account;
 
-				(user as any).whoData = {
-					away: isAway,
-					account: whoUser.account || null, // Modern IRCv3 account
-					realname: whoUser.realname,
-					lastUpdated: Date.now(),
-				};
-
+				// Refresh UI for this channel's user list
 				client.emit("users", {
 					chan: chan.id,
 				});
