@@ -1,7 +1,7 @@
 import {PluginInputHandler} from "./index";
 
 // Added 'who' and 'whowas' to the supported command list
-const commands = ["whois", "who", "whowas"];
+const commands = ["whois"];
 
 const input: PluginInputHandler = function ({irc}, chan, cmd, args) {
 	const uppercaseCmd = cmd.toUpperCase();
