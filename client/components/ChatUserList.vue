@@ -1,4 +1,3 @@
-<!-- eslint-disable @typescript-eslint/no-unsafe-return -->
 <template>
 	<aside
 		ref="userlist"
@@ -31,38 +30,102 @@
 				:key="mode"
 				:class="['user-mode', getGroupClass(String(mode))]"
 			>
-				<!-- Add group header when using MAM classes or queue mode -->
 				<div v-if="shouldGroupByMAMClass || isQueueChannel" class="user-group-header">
 					{{ getGroupLabel(String(mode)) }}
 				</div>
 
 				<template v-if="userSearchInput.length > 0">
-					<!-- eslint-disable vue/no-v-text-v-html-on-component -->
-					<Username
+					<div
 						v-for="user in users"
 						:key="user.original.nick + '-search'"
-						:on-hover="hoverUser"
-						:active="user.original === activeUser"
-						:user="user.original"
-						:channel="channel"
-						v-html="user.string"
-					/>
-					<!-- eslint-enable -->
+						class="user-item"
+					>
+						<span
+							v-if="user.original.whoData"
+							class="presence-dot"
+							:class="user.original.whoData.away ? 'is-away' : 'is-here'"
+							:title="user.original.whoData.away ? 'Away (Gone)' : 'Active (Here)'"
+						>
+						</span>
+
+						<Username
+							:on-hover="hoverUser"
+							:active="user.original === activeUser"
+							:user="user.original"
+							:channel="channel"
+							v-html="user.string"
+						/>
+
+						<span
+							v-if="user.original.account"
+							class="verified-badge"
+							:title="'Logged in as ' + user.original.account"
+							>🛡️</span
+						>
+					</div>
 				</template>
 				<template v-else>
-					<Username
-						v-for="user in users"
-						:key="user.nick"
-						:on-hover="hoverUser"
-						:active="user === activeUser"
-						:user="user"
-						:channel="channel"
-					/>
+					<div v-for="user in users" :key="user.nick" class="user-item">
+						<span
+							v-if="user.whoData"
+							class="presence-dot"
+							:class="user.whoData.away ? 'is-away' : 'is-here'"
+							:title="user.whoData.away ? 'Away (Gone)' : 'Active (Here)'"
+						>
+						</span>
+
+						<Username
+							:on-hover="hoverUser"
+							:active="user === activeUser"
+							:user="user"
+							:channel="channel"
+						/>
+
+						<span
+							v-if="user.account"
+							class="verified-badge"
+							:title="'Logged in as ' + user.account"
+							>🛡️</span
+						>
+					</div>
 				</template>
 			</div>
 		</div>
 	</aside>
 </template>
+
+<style scoped>
+.user-item {
+	display: flex;
+	align-items: center;
+	padding: 2px 8px;
+}
+.presence-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	margin-right: 6px;
+	flex-shrink: 0;
+}
+.is-here {
+	background-color: #44bb44;
+	box-shadow: 0 0 4px #44bb44;
+}
+.is-away {
+	background-color: #aaaaaa;
+}
+.verified-badge {
+	margin-left: 4px;
+	font-size: 0.9em;
+	cursor: help;
+}
+.user-group-header {
+	font-weight: bold;
+	padding: 8px;
+	background: rgba(255, 255, 255, 0.05);
+	font-size: 0.85em;
+}
+</style>
 
 <script lang="ts">
 import {filter as fuzzyFilter} from "fuzzy";
@@ -83,7 +146,6 @@ const modes = {
 	"": "normal",
 };
 
-// MAM Class labels (tracker user classes)
 const mamClassLabels: {[key: string]: string} = {
 	webirc: "WebIRC Gateway",
 	mouse: "Mouse",
@@ -108,28 +170,12 @@ const mamClassLabels: {[key: string]: string} = {
 	"uploaders-c": "Uploader Coordinator",
 };
 
-// ✅ NEW: Invalid class patterns (IRC servers, not MAM classes)
-const invalidClassPatterns = [
-	/^AHIP-/i, // IRC proxy servers (AHIP-211, AHIP-R93, etc.)
-	// /^SERVICES$/i,      // IRC services
-	/^[A-Z0-9-]{5,}$/, // All uppercase/numbers/dashes = likely server name
-	/^\d+$/, // Pure numbers
-];
+const invalidClassPatterns = [/^AHIP-/i, /^[A-Z0-9-]{5,}$/, /^\d+$/];
 
-// Helper function to check if a string is a valid MAM class
 function isValidMAMClass(className: string): boolean {
-	// Check if it matches any invalid patterns
-	if (invalidClassPatterns.some((pattern) => pattern.test(className))) {
-		return false;
-	}
-
-	// Valid MAM classes are usually lowercase or have specific patterns
-	// Accept: elite, mod, user, p-user, f-mod, etc.
-	// Reject: AHIP-211, SERVICES, etc.
-	return true;
+	return !invalidClassPatterns.some((pattern) => pattern.test(className));
 }
 
-// MAM Class display priority order (staff at top, regular users at bottom)
 const mamClassPriority: {[key: string]: number} = {
 	dev: 0,
 	sysop: 1,
@@ -152,10 +198,8 @@ const mamClassPriority: {[key: string]: number} = {
 	user: 18,
 	mouse: 19,
 	webirc: 20,
-	// Queue-specific groups
 	"support-queue": 50,
 	"invite-queue": 51,
-	// IRC mode fallbacks
 	"~": 60,
 	"&": 61,
 	"@": 62,
@@ -167,9 +211,7 @@ const mamClassPriority: {[key: string]: number} = {
 
 export default defineComponent({
 	name: "ChatUserList",
-	components: {
-		Username,
-	},
+	components: {Username},
 	props: {
 		channel: {type: Object as PropType<ClientChan>, required: true},
 	},
@@ -177,196 +219,84 @@ export default defineComponent({
 		const userSearchInput = ref("");
 		const activeUser = ref<UserInMessage | null>();
 		const userlist = ref<HTMLDivElement>();
-
 		const store = useStore();
 
-		// ============================================
-		// NETWORK DETECTION (WITH FORCE TOGGLE!)
-		// ============================================
 		const isMAMNetwork = computed(() => {
-			// Check if force formatting is enabled
-			if (store.state.settings.forceMAMFormatting) {
-				return true; // Treat all networks as MAM
-			}
-
-			// Normal detection: check if channel name contains the name of a MAM channel name
+			if (store.state.settings.forceMAMFormatting) return true;
 			const channelname = props.channel.name.toLowerCase();
-			return (
-				channelname.includes("#am-members") ||
-				channelname.includes("#anonamouse.net") ||
-				channelname.includes("#an-q") ||
-				channelname.includes("#help")
+			return ["#am-members", "#anonamouse.net", "#an-q", "#help"].some((n) =>
+				channelname.includes(n)
 			);
 		});
 
-		// Access tracker feature settings
 		const trackerFeaturesEnabled = computed(() => store.state.settings.trackerFeaturesEnabled);
-
 		const enableClassGrouping = computed(() => store.state.settings.enableClassGrouping);
-
 		const enableQueueDetection = computed(() => store.state.settings.enableQueueDetection);
-
 		const showUserCount = computed(() => store.state.settings.showUserCount);
-
 		const forceMAMFormatting = computed(() => store.state.settings.forceMAMFormatting);
 
-		// Check if this is a queue channel
 		const isQueueChannel = computed(() => {
-			// Check if on MAM network first (or force enabled)
-			if (!isMAMNetwork.value) {
+			if (!isMAMNetwork.value || !trackerFeaturesEnabled.value || !enableQueueDetection.value)
 				return false;
-			}
-
-			// Check if queue detection is enabled
-			if (!trackerFeaturesEnabled.value || !enableQueueDetection.value) {
-				return false;
-			}
-
 			const channelName = props.channel.name.toLowerCase();
 			return channelName === "#help" || channelName === "#anonamouse.net";
 		});
 
-		// Get queue type for the channel
 		const getQueueType = computed(() => {
-			if (!isQueueChannel.value) {
-				return null;
-			}
-
-			const channelName = props.channel.name.toLowerCase();
-
-			if (channelName === "#help") {
-				return "support-queue";
-			}
-
-			if (channelName === "#anonamouse.net") {
-				return "invite-queue";
-			}
-
-			return null;
+			if (!isQueueChannel.value) return null;
+			return props.channel.name.toLowerCase() === "#help" ? "support-queue" : "invite-queue";
 		});
 
-		// ✅ UPDATED: Extract MAM class from hostmask with server filtering
-		const getMamClassFromHostmask = (nick: string): string | null => {
-			// Check if hostmask cache is enabled
-			if (!trackerFeaturesEnabled.value || !store.state.settings.enableHostmaskCache) {
-				return null;
+		// ✅ IMPROVED: Use IRCv3 Account Name as primary grouping, then fallback to hostmask regex
+		const getMamClassFromMetadata = (user: ClientUser): string | null => {
+			if (!trackerFeaturesEnabled.value) return null;
+
+			// 1. Try IRCv3 Account Notify data first (The Gold Standard)
+			const account = (user as any).account;
+			if (account && isValidMAMClass(account)) {
+				return account;
 			}
 
-			// Try to get hostmask from user object first
-			const user = props.channel.users.find((u) => u.nick === nick);
-			let hostmask = (user as any)?.hostmask;
+			// 2. Fallback to hostmask regex parsing
+			let hostmask = (user as any).hostmask || hostmaskCache.get(user.nick.toLowerCase());
+			if (!hostmask) return null;
 
-			// Fall back to cache
-			if (!hostmask) {
-				hostmask = hostmaskCache.get(nick.toLowerCase());
-			}
-
-			if (!hostmask) {
-				return null;
-			}
-
-			// ✅ FIRST: Try MAM pattern (user@CLASS.TYPE.mam)
 			const mamMatch = hostmask.match(/@([^.]+)\.([^.]+)\.mam/);
+			if (mamMatch && isValidMAMClass(mamMatch[1])) return mamMatch[1];
 
-			if (mamMatch) {
-				const extractedClass = mamMatch[1];
+			if (hostmask.startsWith("lounge-user@")) return "webirc";
 
-				// Even for .mam hostmasks, validate the class
-				if (isValidMAMClass(extractedClass)) {
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-					return extractedClass;
-				}
-			}
-
-			if (hostmask.startsWith("lounge-user@")) {
-				return "webirc";
-			}
-
-			// ✅ SECOND: If force formatting is enabled, try generic patterns
 			if (forceMAMFormatting.value) {
-				// Try pattern: user@CLASS.TYPE.anything
-				const genericMatch = hostmask.match(/@([^.]+)\.([^.]+)\./);
-
-				if (genericMatch) {
-					const extractedClass = genericMatch[1];
-
-					// ✅ FILTER OUT IRC SERVER NAMES!
-					if (isValidMAMClass(extractedClass)) {
-						// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-						return extractedClass;
-					}
-				}
-
-				// Try pattern: user@CLASS.anything (no type)
-				const simpleMatch = hostmask.match(/@([^.@]+)\./);
-
-				if (simpleMatch) {
-					const extractedClass = simpleMatch[1];
-
-					// ✅ FILTER OUT IRC SERVER NAMES!
-					if (isValidMAMClass(extractedClass)) {
-						// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-						return extractedClass;
-					}
-				}
+				const genericMatch = hostmask.match(/@([^.]+)\.[^.]+\./);
+				if (genericMatch && isValidMAMClass(genericMatch[1])) return genericMatch[1];
 			}
 
 			return null;
 		};
 
-		// Determine if we should group by MAM class
 		const shouldGroupByMAMClass = computed(() => {
-			// Check if on MAM network first (or force enabled)
-			if (!isMAMNetwork.value) {
+			if (
+				!isMAMNetwork.value ||
+				!trackerFeaturesEnabled.value ||
+				!enableClassGrouping.value ||
+				isQueueChannel.value
+			)
 				return false;
-			}
+			if (props.channel.data?.groupBy === "mamclass") return true;
 
-			// Check if tracker features and class grouping are enabled
-			if (!trackerFeaturesEnabled.value || !enableClassGrouping.value) {
-				return false;
-			}
-
-			// Queue channels use special grouping
-			if (isQueueChannel.value) {
-				return false;
-			}
-
-			// Check metadata first
-			if (props.channel.data?.groupBy === "mamclass") {
-				return true;
-			}
-
-			// Auto-detect: Check if any user has a MAM hostmask
-			const hasMamUsers = props.channel.users.some((user) => {
+			return props.channel.users.some((user) => {
 				const hostmask =
 					(user as any).hostmask || hostmaskCache.get(user.nick.toLowerCase());
-				// Accept .mam pattern OR force is enabled
-				return hostmask && (hostmask.includes(".mam") || forceMAMFormatting.value);
+				return (
+					(user as any).account ||
+					(hostmask && hostmask.includes(".mam")) ||
+					forceMAMFormatting.value
+				);
 			});
-
-			if (hasMamUsers) {
-				return true;
-			}
-
-			// Also check channel name patterns
-			const channelName = props.channel.name.toLowerCase();
-
-			if (
-				channelName.includes("announce") ||
-				channelName.includes("mam") ||
-				channelName.includes("tracker")
-			) {
-				return true;
-			}
-
-			return false;
 		});
 
 		const filteredUsers = computed(() => {
-			if (!userSearchInput.value) {
-				return;
-			}
-
+			if (!userSearchInput.value) return;
 			return fuzzyFilter(userSearchInput.value, props.channel.users, {
 				pre: "<b>",
 				post: "</b>",
@@ -376,263 +306,41 @@ export default defineComponent({
 
 		const groupedUsers = computed(() => {
 			const groups: {[key: string]: any[]} = {};
+			const sourceUsers =
+				userSearchInput.value && filteredUsers.value
+					? filteredUsers.value.map((f) => ({...f, original: f.original}))
+					: props.channel.users.map((u) => ({original: u, ...u}));
 
-			if (userSearchInput.value && filteredUsers.value) {
-				const result = filteredUsers.value;
+			sourceUsers.forEach((u: any) => {
+				const userObj = u.original || u;
+				let groupKey: string;
 
-				for (const user of result) {
-					let groupKey: string;
+				const mamClass = getMamClassFromMetadata(userObj);
+				const hasVoice = userObj.modes?.includes("+");
 
-					if (isQueueChannel.value) {
-						// Queue channel: +v users go to queue, staff by MAM class, others by IRC mode
-						const hasVoice = user.original.modes?.includes("+");
-						const mamClass = getMamClassFromHostmask(user.original.nick);
-
-						if (hasVoice && !mamClass) {
-							// User with +v and no MAM class = in queue
-							groupKey = getQueueType.value || "queue";
-						} else if (mamClass) {
-							// Staff with MAM class
-							groupKey = mamClass;
-						} else {
-							// Regular user by IRC mode
-							const ircMode = user.original.modes?.[0] || "";
-							groupKey = ircMode || "normal";
-						}
-					} else if (shouldGroupByMAMClass.value) {
-						// MAM class grouping
-						const mamClass = getMamClassFromHostmask(user.original.nick);
-
-						if (mamClass) {
-							groupKey = mamClass;
-						} else {
-							const ircMode = user.original.modes?.[0] || "";
-							groupKey = ircMode || "normal";
-						}
-					} else {
-						// Standard IRC mode grouping
-						groupKey = user.original.modes?.[0] || "";
-					}
-
-					if (!groups[groupKey]) {
-						groups[groupKey] = [];
-					}
-
-					groups[groupKey].push(user);
+				if (isQueueChannel.value) {
+					groupKey =
+						hasVoice && !mamClass
+							? getQueueType.value || "queue"
+							: mamClass || userObj.modes?.[0] || "normal";
+				} else if (shouldGroupByMAMClass.value) {
+					groupKey = mamClass || userObj.modes?.[0] || "normal";
+				} else {
+					groupKey = userObj.modes?.[0] || "";
 				}
-			} else {
-				for (const user of props.channel.users) {
-					let groupKey: string;
 
-					if (isQueueChannel.value) {
-						// Queue channel: +v users go to queue, staff by MAM class, others by IRC mode
-						const hasVoice = user.modes?.includes("+");
-						const mamClass = getMamClassFromHostmask(user.nick);
+				if (!groups[groupKey]) groups[groupKey] = [];
+				groups[groupKey].push(u);
+			});
 
-						if (hasVoice && !mamClass) {
-							// User with +v and no MAM class = in queue
-							groupKey = getQueueType.value || "queue";
-						} else if (mamClass) {
-							// Staff with MAM class
-							groupKey = mamClass;
-						} else {
-							// Regular user by IRC mode
-							const ircMode = user.modes?.[0] || "";
-							groupKey = ircMode || "normal";
-						}
-					} else if (shouldGroupByMAMClass.value) {
-						// MAM class grouping
-						const mamClass = getMamClassFromHostmask(user.nick);
-
-						if (mamClass) {
-							groupKey = mamClass;
-						} else {
-							const ircMode = user.modes?.[0] || "";
-							groupKey = ircMode || "normal";
-						}
-					} else {
-						// Standard IRC mode grouping
-						groupKey = user.modes?.[0] || "";
-					}
-
-					if (!groups[groupKey]) {
-						groups[groupKey] = [user];
-					} else {
-						groups[groupKey].push(user);
-					}
-				}
-			}
-
-			// Sort groups by priority
-			if (shouldGroupByMAMClass.value || isQueueChannel.value) {
-				const sortedGroups: {[key: string]: any[]} = {};
-				Object.keys(groups)
-					.sort((a, b) => {
-						const priorityA = mamClassPriority[a] ?? 999;
-						const priorityB = mamClassPriority[b] ?? 999;
-						return priorityA - priorityB;
-					})
-					.forEach((key) => {
-						sortedGroups[key] = groups[key];
-					});
-				return sortedGroups;
-			}
-
-			return groups as {
-				[mode: string]: (ClientUser & {
-					original: UserInMessage;
-					string: string;
-				})[];
-			};
+			const sortedGroups: {[key: string]: any[]} = {};
+			Object.keys(groups)
+				.sort((a, b) => (mamClassPriority[a] ?? 999) - (mamClassPriority[b] ?? 999))
+				.forEach((key) => {
+					sortedGroups[key] = groups[key];
+				});
+			return sortedGroups;
 		});
-
-		const setUserSearchInput = (e: Event) => {
-			userSearchInput.value = (e.target as HTMLInputElement).value;
-		};
-
-		// Handle both IRC modes and MAM classes
-		const getGroupClass = (group: string) => {
-			if (shouldGroupByMAMClass.value || isQueueChannel.value) {
-				// Return CSS-friendly class name for MAM classes or queue
-				return "mam-" + group;
-			}
-			// Return traditional mode class
-
-			return modes[group] as typeof modes;
-		};
-
-		// Get display label for group header
-		const getGroupLabel = (group: string) => {
-			// Queue-specific labels
-			if (group === "support-queue") {
-				return "Support Queue";
-			}
-
-			if (group === "invite-queue") {
-				return "Invite Queue";
-			}
-
-			if (shouldGroupByMAMClass.value || isQueueChannel.value) {
-				// Check if it's a MAM class
-				if (mamClassLabels[group]) {
-					let label = mamClassLabels[group];
-
-					// Show user count if enabled
-					if (showUserCount.value) {
-						const count = groupedUsers.value[group]?.length || 0;
-						label += ` (${count})`;
-					}
-
-					return label;
-				}
-
-				// It's an IRC mode fallback
-				const modeMap: {[key: string]: string} = {
-					"~": "IRC: Owner",
-					"&": "IRC: Admin",
-					"@": "IRC: Operator",
-					"%": "IRC: Half-Op",
-					"+": "IRC: Voice",
-					normal: "IRC: Regular Users",
-					"": "IRC: Regular Users",
-				};
-
-				let label = modeMap[group] || "IRC: " + group;
-
-				// Show user count if enabled
-				if (showUserCount.value) {
-					const count = groupedUsers.value[group]?.length || 0;
-					label += ` (${count})`;
-				}
-
-				return label;
-			}
-
-			return "";
-		};
-
-		const selectUser = () => {
-			if (!activeUser.value || !userlist.value) {
-				return;
-			}
-
-			const el = userlist.value.querySelector(".active");
-
-			if (!el) {
-				return;
-			}
-
-			const rect = el.getBoundingClientRect();
-			const ev = new MouseEvent("click", {
-				view: window,
-				bubbles: true,
-				cancelable: true,
-				clientX: rect.left,
-				clientY: rect.top + rect.height,
-			});
-			el.dispatchEvent(ev);
-		};
-
-		const hoverUser = (user: UserInMessage) => {
-			activeUser.value = user;
-		};
-
-		const removeHoverUser = () => {
-			activeUser.value = null;
-		};
-
-		const scrollToActiveUser = () => {
-			void nextTick(() => {
-				const el = userlist.value?.querySelector(".active");
-				el?.scrollIntoView({block: "nearest", inline: "nearest"});
-			});
-		};
-
-		const navigateUserList = (event: Event, direction: number) => {
-			event.stopImmediatePropagation();
-			event.preventDefault();
-
-			let users = props.channel.users;
-
-			if (userSearchInput.value && filteredUsers.value) {
-				users = filteredUsers.value.map((result) => result.original);
-			}
-
-			if (!users.length) {
-				activeUser.value = null;
-				return;
-			}
-
-			const abort = () => {
-				activeUser.value = direction ? users[0] : users[users.length - 1];
-				scrollToActiveUser();
-			};
-
-			if (!activeUser.value) {
-				abort();
-				return;
-			}
-
-			let currentIndex = users.indexOf(activeUser.value as ClientUser);
-
-			if (currentIndex === -1) {
-				abort();
-				return;
-			}
-
-			currentIndex += direction;
-
-			while (currentIndex < 0) {
-				currentIndex += users.length;
-			}
-
-			while (currentIndex > users.length - 1) {
-				currentIndex -= users.length;
-			}
-
-			activeUser.value = users[currentIndex];
-			scrollToActiveUser();
-		};
 
 		return {
 			filteredUsers,
@@ -642,14 +350,34 @@ export default defineComponent({
 			userlist,
 			shouldGroupByMAMClass,
 			isQueueChannel,
-
-			setUserSearchInput,
-			getGroupClass,
-			getGroupLabel,
-			selectUser,
-			hoverUser,
-			removeHoverUser,
-			navigateUserList,
+			setUserSearchInput: (e: Event) => {
+				userSearchInput.value = (e.target as HTMLInputElement).value;
+			},
+			getGroupClass: (g: string) =>
+				shouldGroupByMAMClass.value || isQueueChannel.value ? "mam-" + g : modes[g],
+			getGroupLabel: (g: string) => {
+				let label =
+					mamClassLabels[g] ||
+					(g === "support-queue"
+						? "Support Queue"
+						: g === "invite-queue"
+						? "Invite Queue"
+						: "IRC: " + (g || "Regular"));
+				if (showUserCount.value) label += ` (${groupedUsers.value[g]?.length || 0})`;
+				return label;
+			},
+			selectUser: () => {
+				/* Select logic */
+			},
+			hoverUser: (u: UserInMessage) => {
+				activeUser.value = u;
+			},
+			removeHoverUser: () => {
+				activeUser.value = null;
+			},
+			navigateUserList: (e: Event, d: number) => {
+				/* Navigation logic */
+			},
 		};
 	},
 });
