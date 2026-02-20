@@ -9,9 +9,6 @@ import Helper from "../../helper";
 import Config from "../../config";
 import {MessageType} from "../../../shared/types/msg";
 import {ChanType, ChanState} from "../../../shared/types/chan";
-import kick from "./kick";
-import nick from "./nick";
-import e from "express";
 
 // Create raw IRC log directory
 const logDir = path.join(Helper.getHomePath(), "logs", "raw-irc");
@@ -21,7 +18,6 @@ if (!fs.existsSync(logDir)) {
 }
 
 // Helper function to log any message to file
-// Updated to support categories (e.g. network-ping.log, network-motd.log)
 function logToFile(
 	networkName: string,
 	text: string,
@@ -31,7 +27,6 @@ function logToFile(
 	const cleanNetwork = networkName.replace(/[^a-z0-9]/gi, "_");
 	const cleanCategory = category.replace(/[^a-z0-9]/gi, "-").toLowerCase();
 
-	// Generates: /logs/raw-irc/NetworkName-debug-motd.log
 	const logFile = path.join(logDir, `${cleanNetwork}-${cleanCategory}.log`);
 
 	const timestamp = new Date().toISOString();
@@ -74,7 +69,6 @@ export default <IrcEventHandler>function (irc, network) {
 		}
 
 		if (network.irc.network.cap.enabled.includes("monitor-notify")) {
-			// MONITOR is supported, it will auto-track users as they join
 			client.emit("network:info", {
 				uuid: network.uuid,
 				// @ts-expect-error: serverOptions is intentionally added for extended info
@@ -84,7 +78,6 @@ export default <IrcEventHandler>function (irc, network) {
 			});
 		}
 
-		// Always restore away message for this network
 		if (network.awayMessage) {
 			irc.raw("AWAY", network.awayMessage);
 		} else if (client.awayMessage && _.size(client.attachedClients) === 0) {
@@ -185,9 +178,7 @@ export default <IrcEventHandler>function (irc, network) {
 		}
 
 		if (network.keepNick) {
-			// We disconnected without getting our original nick back yet, just set it back locally
 			irc.options.nick = irc.user.nick = network.keepNick;
-
 			network.setNick(network.keepNick);
 			network.keepNick = null;
 
@@ -210,7 +201,6 @@ export default <IrcEventHandler>function (irc, network) {
 	}
 
 	if (Config.values.debug.raw) {
-		// 1. Define the debug channels
 		const debugCategories = {
 			general: {name: "Debug: Main", topic: "General Raw IRC messages"},
 			ping: {name: "Debug: Ping", topic: "PING/PONG connection checks"},
@@ -232,7 +222,6 @@ export default <IrcEventHandler>function (irc, network) {
 
 		const chanMap: Record<string, any> = {};
 
-		// 2. Create/Join channels
 		for (const [key, info] of Object.entries(debugCategories)) {
 			let chan = network.channels.find((c) => c.name === info.name);
 
@@ -255,41 +244,71 @@ export default <IrcEventHandler>function (irc, network) {
 			chanMap[key] = chan;
 		}
 
-		log.info(`Advanced Raw IRC handlers registered for network: ${network.name}`);
-
-		// 3. The Router Logic
 		irc.on("raw", function (message) {
 			const rawLine = message.line || "";
-
-			// --- MANUAL COMMAND PARSING ---
 			const parts = rawLine.split(" ");
 			let index = 0;
 
-			if (parts[index] && parts[index].startsWith("@")) index++; // Skip Tags
-			if (parts[index] && parts[index].startsWith(":")) index++; // Skip Source
+			if (parts[index] && parts[index].startsWith("@")) index++;
+			if (parts[index] && parts[index].startsWith(":")) index++;
 
 			const command = (parts[index] || "").toUpperCase();
-
-			// --- ROUTING LOGIC ---
 			let categoryKey = "general";
+			let skipEmit = false;
 
-			// 1. Priority Checks (CTCP & Errors)
+			// 1. HIGHEST PRIORITY: CTCP
 			if (rawLine.includes("\x01")) {
-				categoryKey = "ctcp"; // Must be before PRIVMSG/NOTICE
-			} else if (/^[45]\d\d$/.test(command)) {
-				categoryKey = "errors"; // Catches 401, 404, 433, 500, etc.
+				categoryKey = "ctcp";
+				skipEmit = false;
 			}
-			// 2. Standard Commands
+			// 2. Error Numerics
+			else if (/^[45]\d\d$/.test(command)) {
+				categoryKey = "errors";
+			}
+			// 3. State Tracking Commands
+			else if (command === "ACCOUNT") {
+				categoryKey = "accounts";
+				const source = parts[index - 1];
+				const nick = source.includes("!")
+					? source.split("!")[0].replace(":", "")
+					: source.replace(":", "");
+				const account = parts[index + 1] === "*" ? null : parts[index + 1];
+
+				let hasActualChange = false;
+				network.channels.forEach((chan) => {
+					const user = chan.findUser(nick);
+					if (user && (user as any).account !== account) {
+						hasActualChange = true;
+						(user as any).account = account;
+					}
+				});
+
+				if (!hasActualChange) skipEmit = true;
+			} else if (command === "352") {
+				categoryKey = "who";
+				const nick = parts[index + 5];
+				const flags = parts[index + 6];
+
+				let isChanged = false;
+				network.channels.forEach((chan) => {
+					const user = chan.findUser(nick);
+					if (user) {
+						if ((user as any).lastFlags !== flags) {
+							isChanged = true;
+						}
+						(user as any).lastFlags = flags;
+					}
+				});
+
+				if (!isChanged) skipEmit = true;
+			}
+			// 4. Standard Mappings
 			else if (command === "PING" || command === "PONG") {
 				categoryKey = "ping";
 			} else if (
-				["311", "312", "313", "317", "318", "319", "352", "315", "330", "369"].includes(
-					command
-				)
+				["311", "312", "313", "317", "318", "319", "315", "330", "369"].includes(command)
 			) {
 				categoryKey = "who";
-			} else if (["ACCOUNT", "900", "903", "904", "AUTHENTICATE"].includes(command)) {
-				categoryKey = "accounts";
 			} else if (["372", "375", "376", "422"].includes(command)) {
 				categoryKey = "motd";
 			} else if (command === "JOIN") {
@@ -308,26 +327,16 @@ export default <IrcEventHandler>function (irc, network) {
 				categoryKey = "mode";
 			} else if (command === "NOTICE") {
 				categoryKey = "notice";
-			} else if (
-				["353", "366", "352", "315", "265", "266", "251", "252", "254", "255"].includes(
-					command
-				)
-			) {
+			} else if (["353", "366", "265", "266", "251", "252", "254", "255"].includes(command)) {
 				categoryKey = "lists";
 			}
 
 			// --- PUSH & LOG ---
 			let targetChan = chanMap[categoryKey];
-
-			// 🛑 THE BUG FIX:
-			// Only fall back to the Lobby if we haven't found a specific debug channel.
-			// If categoryKey is NOT "general", it means we've successfully routed it
-			// to a specific debug channel, so we don't want it in the Lobby anymore.
 			if (!targetChan && categoryKey === "general") {
 				targetChan = network.getLobby();
 			}
 
-			// Only push if we have a target (this prevents double-posting to Lobby)
 			if (targetChan) {
 				targetChan.pushMessage(
 					client,
@@ -340,9 +349,21 @@ export default <IrcEventHandler>function (irc, network) {
 				);
 			}
 
-			// Log to separate files (keep this as is)
 			const direction = message.from_server ? "<<" : ">>";
 			logToFile(network.name, rawLine, direction, categoryKey);
+
+			// --- CONDITIONAL EMIT ---
+			if (!skipEmit && command === "ACCOUNT") {
+				const source = parts[index - 1];
+				const nick = source.includes("!")
+					? source.split("!")[0].replace(":", "")
+					: source.replace(":", "");
+				network.channels.forEach((chan) => {
+					if (chan.findUser(nick)) {
+						client.emit("users", {chan: chan.id});
+					}
+				});
+			}
 		});
 	}
 
@@ -387,13 +408,10 @@ export default <IrcEventHandler>function (irc, network) {
 
 	irc.on("server options", function (data) {
 		network.serverOptions.PREFIX.update(data.options.PREFIX);
-
 		if (data.options.CHANTYPES) {
 			network.serverOptions.CHANTYPES = data.options.CHANTYPES;
 		}
-
 		network.serverOptions.NETWORK = data.options.NETWORK;
-
 		client.emit("network:options", {
 			network: network.uuid,
 			serverOptions: network.serverOptions,
@@ -406,7 +424,6 @@ export default <IrcEventHandler>function (irc, network) {
 			...status,
 			network: network.uuid,
 		};
-
 		client.emit("network:status", toSend);
 	}
 };

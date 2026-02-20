@@ -54,20 +54,34 @@ export default <IrcEventHandler>function (irc, network) {
 	function updateUserFromWho(whoUser: any) {
 		network.channels.forEach((chan) => {
 			const user = chan.findUser(whoUser.nick);
+
 			if (user) {
-				// H = Here, G = Gone (Away)
 				const isAway = whoUser.flags.includes("G");
+				const currentWho = (user as any).whoData;
 
-				(user as any).whoData = {
-					away: isAway,
-					account: whoUser.account || null, // Modern IRCv3 account
-					realname: whoUser.realname,
-					lastUpdated: Date.now(),
-				};
+				// 🔍 THE FIX: If currentWho doesn't exist, it's a new entry.
+				// We MUST emit so the Vue component sees the 'whoData' for the first time.
+				const isFirstUpdate = !currentWho;
 
-				client.emit("users", {
-					chan: chan.id,
-				});
+				const hasChanged =
+					isFirstUpdate ||
+					currentWho.away !== isAway ||
+					currentWho.account !== (whoUser.account || null) ||
+					currentWho.realname !== whoUser.realname;
+
+				if (hasChanged) {
+					(user as any).whoData = {
+						away: isAway,
+						account: whoUser.account || null,
+						realname: whoUser.realname,
+						lastUpdated: Date.now(),
+					};
+
+					// This is what makes the 🟢 or ⚪ dots appear in your sidebar
+					client.emit("users", {
+						chan: chan.id,
+					});
+				}
 			}
 		});
 	}
