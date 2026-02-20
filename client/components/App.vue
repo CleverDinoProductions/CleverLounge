@@ -10,6 +10,14 @@
 		<router-view ref="loungeWindow"></router-view>
 		<Mentions />
 		<ImageViewer ref="imageViewer" />
+
+		<HistoryViewer
+			v-if="store.state.historyViewer.show"
+			:network="store.state.historyViewer.network?.name"
+			:channel="store.state.historyViewer.channel?.name"
+			:username="store.state.currentUser"
+		/>
+
 		<ContextMenu ref="contextMenu" />
 		<ConfirmDialog ref="confirmDialog" />
 		<div id="upload-overlay"></div>
@@ -29,6 +37,8 @@ import ImageViewer from "./ImageViewer.vue";
 import ContextMenu from "./ContextMenu.vue";
 import ConfirmDialog from "./ConfirmDialog.vue";
 import Mentions from "./Mentions.vue";
+import HistoryViewer from "./HistoryViewer.vue"; // Added
+
 import {
 	computed,
 	provide,
@@ -54,6 +64,7 @@ export default defineComponent({
 		ContextMenu,
 		ConfirmDialog,
 		Mentions,
+		HistoryViewer, // Added
 	},
 	setup() {
 		const store = useStore();
@@ -87,9 +98,7 @@ export default defineComponent({
 			if (isIgnoredKeybind(e)) {
 				return true;
 			}
-
 			store.commit("toggleSidebar");
-
 			return false;
 		};
 
@@ -97,9 +106,7 @@ export default defineComponent({
 			if (isIgnoredKeybind(e)) {
 				return true;
 			}
-
 			store.commit("toggleUserlist");
-
 			return false;
 		};
 
@@ -110,31 +117,24 @@ export default defineComponent({
 		};
 
 		const msUntilNextDay = () => {
-			// Compute how many milliseconds are remaining until the next day starts
 			const today = new Date();
 			const tommorow = new Date(
 				today.getFullYear(),
 				today.getMonth(),
 				today.getDate() + 1
 			).getTime();
-
 			return tommorow - today.getTime();
 		};
 
 		const prepareOpenStates = () => {
 			const viewportWidth = window.innerWidth;
 			let isUserlistOpen = storage.get("thelounge.state.userlist");
-
 			if (viewportWidth > constants.mobileViewportPixels) {
 				store.commit("sidebarOpen", storage.get("thelounge.state.sidebar") !== "false");
 			}
-
-			// If The Lounge is opened on a small screen (less than 1024px), and we don't have stored
-			// user list state, close it by default
 			if (viewportWidth >= 1024 && isUserlistOpen !== "true" && isUserlistOpen !== "false") {
 				isUserlistOpen = "true";
 			}
-
 			store.commit("userlistOpen", isUserlistOpen === "true");
 		};
 
@@ -146,19 +146,24 @@ export default defineComponent({
 			Mousetrap.bind("alt+s", toggleSidebar);
 			Mousetrap.bind("alt+m", toggleMentions);
 
+			// CATCH THE HISTORY VIEW EVENT
+			eventbus.on("history:show", (data: any) => {
+				store.commit("historyViewerState", {
+					show: true,
+					network: data.network,
+					channel: data.channel,
+				});
+			});
+
 			debouncedResize.value = throttle(() => {
 				eventbus.emit("resize");
 			}, 100);
-
 			window.addEventListener("resize", debouncedResize.value, {passive: true});
 
-			// Emit a daychange event every time the day changes so date markers know when to update themselves
 			const emitDayChange = () => {
 				eventbus.emit("daychange");
-				// This should always be 24h later but re-computing exact value just in case
 				dayChangeTimeout.value = setTimeout(emitDayChange, msUntilNextDay());
 			};
-
 			dayChangeTimeout.value = setTimeout(emitDayChange, msUntilNextDay());
 		});
 
@@ -167,11 +172,11 @@ export default defineComponent({
 			Mousetrap.unbind("alt+u");
 			Mousetrap.unbind("alt+s");
 			Mousetrap.unbind("alt+m");
+			eventbus.off("history:show"); // Cleanup
 
 			if (debouncedResize.value) {
 				window.removeEventListener("resize", debouncedResize.value);
 			}
-
 			if (dayChangeTimeout.value) {
 				clearTimeout(dayChangeTimeout.value);
 			}

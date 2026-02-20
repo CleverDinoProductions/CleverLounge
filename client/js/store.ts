@@ -43,12 +43,12 @@ export type ClientSession = {
 export type State = {
 	appLoaded: boolean;
 	activeChannel?: NetChan;
+	currentUser: string; // Added for log paths
 	currentUserVisibleError: string | null;
 	desktopNotificationState: DesktopNotificationState;
 	isAutoCompleting: boolean;
 	isConnected: boolean;
 	networks: ClientNetwork[];
-	// TODO: type
 	mentions: ClientMention[];
 	hasServiceWorker: boolean;
 	pushNotificationState: string;
@@ -57,6 +57,12 @@ export type State = {
 	sidebarOpen: boolean;
 	sidebarDragging: boolean;
 	userlistOpen: boolean;
+	historyViewer: {
+		// Added for the history viewer state
+		show: boolean;
+		network: ClientNetwork | null;
+		channel: ClientChan | null;
+	};
 	versionData:
 		| null
 		| undefined
@@ -86,6 +92,7 @@ export type State = {
 const state = (): State => ({
 	appLoaded: false,
 	activeChannel: undefined,
+	currentUser: "admin", // Default user, updated on login
 	currentUserVisibleError: null,
 	desktopNotificationState: detectDesktopNotificationState(),
 	isAutoCompleting: false,
@@ -99,6 +106,11 @@ const state = (): State => ({
 	sidebarOpen: false,
 	sidebarDragging: false,
 	userlistOpen: storage.get("thelounge.state.userlist") !== "false",
+	historyViewer: {
+		show: false,
+		network: null,
+		channel: null,
+	},
 	versionData: null,
 	versionStatus: "loading",
 	versionDataExpired: false,
@@ -126,7 +138,6 @@ type Getters = {
 	title(state: State, getters: Omit<Getters, "title">): string;
 };
 
-// getters without the state argument
 export type CallableGetters = {
 	[K in keyof Getters]: ReturnType<Getters[K]>;
 };
@@ -141,14 +152,12 @@ const getters: Getters = {
 			if (network.uuid !== networkUuid) {
 				continue;
 			}
-
 			for (const channel of network.channels) {
 				if (channel.name === channelName) {
 					return {network, channel};
 				}
 			}
 		}
-
 		return null;
 	},
 	findChannel: (state) => (id: number) => {
@@ -159,7 +168,6 @@ const getters: Getters = {
 				}
 			}
 		}
-
 		return null;
 	},
 	findNetwork: (state) => (uuid: string) => {
@@ -168,22 +176,18 @@ const getters: Getters = {
 				return network;
 			}
 		}
-
 		return null;
 	},
 	highlightCount(state) {
 		let highlightCount = 0;
-
 		for (const network of state.networks) {
 			for (const channel of network.channels) {
 				if (channel.muted) {
 					continue;
 				}
-
 				highlightCount += channel.highlight;
 			}
 		}
-
 		return highlightCount;
 	},
 	title(state, getters) {
@@ -191,7 +195,6 @@ const getters: Getters = {
 			? `(${getters.highlightCount.toString()}) `
 			: "";
 		const channelname = state.activeChannel ? `${state.activeChannel.channel.name} — ` : "";
-
 		return alertEventCount + channelname + appName;
 	},
 };
@@ -205,7 +208,6 @@ type Mutations = {
 	isConnected(state: State, payload: State["isConnected"]): void;
 	networks(state: State, networks: State["networks"]): void;
 	mentions(state: State, mentions: State["mentions"]): void;
-
 	removeNetwork(state: State, networkUuid: string): void;
 	sortNetworks(
 		state: State,
@@ -230,6 +232,13 @@ type Mutations = {
 	messageSearchPendingQuery(state: State, value: State["messageSearchPendingQuery"]): void;
 	messageSearchResults(state: State, value: State["messageSearchResults"]): void;
 	addMessageSearchResults(state: State, value: NonNullable<State["messageSearchResults"]>): void;
+	// New Mutations for History
+	historyViewerState(
+		state: State,
+		payload: {show: boolean; network?: ClientNetwork; channel?: ClientChan}
+	): void;
+	hideHistoryViewer(state: State): void;
+	currentUser(state: State, payload: string): void;
 };
 
 const mutations: Mutations = {
@@ -312,20 +321,27 @@ const mutations: Mutations = {
 		state.messageSearchResults = value;
 	},
 	addMessageSearchResults(state, value) {
-		// Append the search results and add networks and channels to new messages
 		if (!state.messageSearchResults) {
 			state.messageSearchResults = {results: []};
 		}
-
 		if (!value) {
 			return;
 		}
-
-		const results = [...value.results, ...state.messageSearchResults.results];
-
 		state.messageSearchResults = {
-			results,
+			results: [...value.results, ...state.messageSearchResults.results],
 		};
+	},
+	// Implementing History Mutations
+	historyViewerState(state, payload) {
+		state.historyViewer.show = payload.show;
+		state.historyViewer.network = payload.network || null;
+		state.historyViewer.channel = payload.channel || null;
+	},
+	hideHistoryViewer(state) {
+		state.historyViewer.show = false;
+	},
+	currentUser(state, payload) {
+		state.currentUser = payload;
 	},
 };
 
@@ -334,6 +350,7 @@ export type TypedCommit = <T extends keyof Mutations>(
 	payload?: Parameters<Mutations[T]>[1] | null,
 	options?: {root?: boolean}
 ) => ReturnType<Mutations[T]>;
+
 type TypedActionContext = Omit<ActionContext<State, State>, "commit"> & {
 	commit: TypedCommit;
 };
@@ -349,135 +366,79 @@ const actions: Actions = {
 	},
 };
 
-const storePattern = {
-	state,
-	mutations,
-	actions,
-	getters,
-};
-
-// https://vuex.vuejs.org/guide/typescript-support.html#typing-usestore-composition-function
+const storePattern = {state, mutations, actions, getters};
 export const key: InjectionKey<Store<State>> = Symbol();
 
-// vuex types getters as any
 export type TypedStore = Omit<Store<State>, "getters" | "commit"> & {
 	getters: CallableGetters;
 	commit: TypedCommit;
-	state: State & {
-		settings: SettingsState;
-	};
+	state: State & {settings: SettingsState};
 };
 
 export const store = createStore(storePattern) as TypedStore;
-
 const settingsStore = createSettingsStore(store);
-
-// Settings module is registered dynamically because it benefits
-// from a direct reference to the store
 store.registerModule("settings", settingsStore);
 
-// ============================================
-// ✅ INITIALIZE BODY CLASSES ON APP LOAD
-// ============================================
-// Apply all settings that affect body element classes
-// This ensures settings are properly applied on page load
+// Existing initialization logic
 function initializeBodyClasses() {
 	const settings = store.state.settings;
-
-	// MAM Class Grouping
 	if (settings.enableClassGrouping) {
 		document.body.classList.add("enable-class-grouping");
 	}
-
-	// Use Mam Text Colors
 	if (settings.useMamTextColors) {
 		document.body.classList.add("tracker-mam-text-colors");
 	}
-
-	// Use text colors
 	if (settings.useTextColors) {
 		document.body.classList.add("tracker-text-colors");
 	}
-
-	// Use background colors
 	if (settings.useBackgroundColors) {
 		document.body.classList.add("tracker-background-colors");
 	}
-
-	// Show class badges
 	if (settings.showClassBadges) {
 		document.body.classList.add("show-tracker-badges");
 	}
-
-	// Sticky group headers
 	if (settings.stickyGroupHeaders) {
 		document.body.classList.add("sticky-userlist-headers");
 	}
-
-	// Staff glow effect
 	if (settings.staffGlowEffect) {
 		document.body.classList.add("staff-glow");
 	}
-
-	// Compact badges
 	if (settings.compactBadges) {
 		document.body.classList.add("compact-badges");
 	}
-
-	// Fade inactive users
 	if (settings.fadeInactiveUsers) {
 		document.body.classList.add("fade-inactive");
 	}
-
-	// Animate queue
 	if (settings.animateQueue) {
 		document.body.classList.add("animate-queue");
 	}
-
-	// Readable mode messages
 	if (settings.readableModeMessages) {
 		document.body.classList.add("readable-mode-messages");
 	}
-
-	// Colored mode messages
 	if (settings.coloredModeMessages) {
 		document.body.classList.add("colored-mode-messages");
 	}
-
-	// Compact user modes (NOW UNCOMMENTED - setting exists!)
 	if (settings.compactUserModes) {
 		document.body.classList.add("compact-user-modes");
 	}
-
-	// Compact queue messages (NOW UNCOMMENTED - setting exists!)
 	if (settings.compactQueueMessages) {
 		document.body.classList.add("compact-queue-messages");
 	}
-
-	// Compact mode messages (this one exists)
 	if (settings.compactModeMessages) {
 		document.body.classList.add("compact-mode-messages");
 	}
-
-	// Compact join/quit
 	if (settings.compactJoinQuit) {
 		document.body.classList.add("compact-join-quit");
 	}
-
-	// Show badges in messages
 	if (settings.showBadgesInMessages) {
 		document.body.classList.add("badges-in-messages");
 	}
-
-	// Debug mode
 	if (settings.debugMode) {
 		document.body.classList.add("tracker-debug");
 		console.log("🐭 CleverLounge Debug Mode Enabled");
 	}
 }
 
-// Run initialization after settings are loaded
-// Use setTimeout to ensure settings are fully loaded
 setTimeout(() => {
 	initializeBodyClasses();
 }, 0);
