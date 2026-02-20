@@ -8,48 +8,68 @@ import log from "../../log";
 export default <IrcEventHandler>function (irc, network) {
 	const client = this;
 
+	log.info("🔍 WHO handler loaded for network:", network.name);
+
 	irc.on("who", handleWho);
 
 	function handleWho(data) {
-		// WHO target is often a channel or a mask
-		let chan = network.getChannel(data.target);
+		let chan = network.getChannel(data.nick);
 
 		if (typeof chan === "undefined") {
 			if (data.error) {
 				chan = network.getLobby();
 			} else {
-				chan = client.createChannel({
-					type: ChanType.QUERY,
-					name: data.target,
-				});
+				if (Config.values.autocreateQuery) {
+					chan = client.createChannel({
+						type: ChanType.QUERY,
+						name: data.nick,
+					});
 
-				client.emit("join", {
-					network: network.uuid,
-					chan: chan.getFilteredClone(true),
-					shouldOpen: false,
-					index: network.addChannel(chan),
-				});
-				chan.loadMessages(client, network);
-				client.save();
+					client.emit("join", {
+						network: network.uuid,
+						chan: chan.getFilteredClone(true),
+						shouldOpen: false,
+						index: network.addChannel(chan),
+					});
+					chan.loadMessages(client, network);
+					client.save();
+				} else {
+					chan = network.getLobby();
+					log.debug(`Suppressed query window creation for WHO: ${data.nick}`);
+				}
 			}
 		}
-
-		const msg = new Msg({
-			type: MessageType.WHO,
-			who: data,
-		});
-
-		// Update user metadata (Away status, etc.) from WHO reply flags
-		if (data.users && Array.isArray(data.users)) {
-			data.users.forEach((whoUser) => {
-				updateUserFromWho(whoUser);
-			});
-		}
-
-		chan.pushMessage(client, msg);
 	}
 
-	// ========== USER DATA UPDATE FUNCTIONS ==========
+	// Log ALL raw IRC messages to see WHO responses
+	irc.on("raw", function (message: any) {
+		const rawLine = message.line || "";
+
+		// Only log WHO-related raw messages
+		if (
+			message.command === "352" ||
+			message.command === "315" ||
+			message.command === "WHO" ||
+			(message.params && message.params.some((p: string) => p.includes("WHO")))
+		) {
+			log.info("📨 RAW IRC MESSAGE:", JSON.stringify(message, null, 2));
+
+			// --- POLISHED RAW VIEWER INTEGRATION ---
+			// Route these to the "Debug: Who/Whois" channel if it exists
+			const debugChan = network.channels.find((c) => c.name === "Debug: Who/Whois");
+			if (debugChan) {
+				debugChan.pushMessage(
+					client,
+					new Msg({
+						type: MessageType.RAW,
+						self: false,
+						text: rawLine,
+					}),
+					true
+				);
+			}
+		}
+	});
 
 	function updateUserFromWho(whoUser: any) {
 		network.channels.forEach((chan) => {
@@ -60,7 +80,6 @@ export default <IrcEventHandler>function (irc, network) {
 				const currentWho = (user as any).whoData;
 
 				// 🔍 THE FIX: If currentWho doesn't exist, it's a new entry.
-				// We MUST emit so the Vue component sees the 'whoData' for the first time.
 				const isFirstUpdate = !currentWho;
 
 				const hasChanged =
@@ -77,12 +96,68 @@ export default <IrcEventHandler>function (irc, network) {
 						lastUpdated: Date.now(),
 					};
 
-					// This is what makes the 🟢 or ⚪ dots appear in your sidebar
+					// Trigger the 🟢 or ⚪ dots in sidebar
 					client.emit("users", {
 						chan: chan.id,
 					});
 				}
 			}
 		});
+	} // Fixed missing closing bracket for updateUserFromWho
+
+	// Listen to raw numeric 352 (WHO reply)
+	irc.on("352", function (event: any) {
+		log.info("🎯 352 WHO REPLY:", JSON.stringify(event, null, 2));
+		processWhoReply(event);
+		updateUserFromWho(event); // Ensure presence dots update from raw numeric
+	});
+
+	// Listen to end of WHO (315)
+	irc.on("315", function (event: any) {
+		log.info("✅ 315 END OF WHO:", event);
+	});
+
+	// Standard who event
+	irc.on("who", function (data: any) {
+		log.info("🎯 WHO EVENT:", JSON.stringify(data, null, 2));
+		processWhoReply(data);
+		updateUserFromWho(data); // Ensure presence dots update from standard event
+	});
+
+	function processWhoReply(data: any) {
+		log.info("Processing WHO data:", data);
+
+		// Data might be in different format depending on irc-framework version
+		const channel = data.channel || data.params?.[1];
+		const nick = data.nick || data.params?.[5];
+		const ident = data.ident || data.params?.[2];
+		const hostname = data.hostname || data.params?.[3];
+
+		log.info(`Extracted: chan=${channel}, nick=${nick}, ident=${ident}, host=${hostname}`);
+
+		if (!channel || !nick || !ident || !hostname) {
+			log.warn("WHO data incomplete:", data);
+			return;
+		}
+
+		const chan = network.getChannel(channel);
+
+		if (!chan) {
+			log.warn("Channel not found:", channel);
+			return;
+		}
+
+		const user = chan.getUser(nick);
+
+		if (user) {
+			user.hostmask = `${ident}@${hostname}`;
+			log.info(`✅ CACHED: ${nick} -> ${user.hostmask}`);
+
+			client.emit("users", {
+				chan: chan.id,
+			});
+		} else {
+			log.warn(`User not found in channel: ${nick}`);
+		}
 	}
 };
