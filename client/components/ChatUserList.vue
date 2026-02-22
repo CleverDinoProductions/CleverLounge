@@ -125,11 +125,28 @@
 	background: rgba(255, 255, 255, 0.05);
 	font-size: 0.85em;
 }
+
+/* Added Standard Mode Styling */
+.user-mode.owner {
+	border-left: 3px solid #ff5555;
+}
+.user-mode.admin {
+	border-left: 3px solid #aa00aa;
+}
+.user-mode.op {
+	border-left: 3px solid #eebb00;
+}
+.user-mode.half-op {
+	border-left: 3px solid #33aa33;
+}
+.user-mode.voice {
+	border-left: 3px solid #5555ff;
+}
 </style>
 
 <script lang="ts">
 import {filter as fuzzyFilter} from "fuzzy";
-import {computed, defineComponent, nextTick, PropType, ref} from "vue";
+import {computed, defineComponent, PropType, ref} from "vue";
 import type {UserInMessage} from "../../shared/types/msg";
 import type {ClientChan, ClientUser} from "../js/types";
 import {hostmaskCache} from "../js/hostmaskcache";
@@ -147,7 +164,7 @@ const modes = {
 };
 
 const mamClassLabels: {[key: string]: string} = {
-	webirc: "User (Guest)", // User is connecting via webIRC, treat as a special "guest" class
+	webirc: "User (Guest)",
 	mouse: "Mouse",
 	user: "User (Regular)",
 	"p-user": "Power User",
@@ -170,45 +187,56 @@ const mamClassLabels: {[key: string]: string} = {
 	"uploaders-c": "Uploader Coordinator",
 };
 
+// Global priority maps
+const mamClassPriority: {[key: string]: number} = {
+	dev: 1,
+	sysop: 2,
+	"sr-admin": 3,
+	admin: 4,
+	"uploaders-c": 5,
+	"sr-mod": 6,
+	mod: 7,
+	"t-mod": 8,
+	"f-mod": 9,
+	support: 10,
+	entry: 11,
+	uploader: 12,
+	mouseketeer: 13,
+	supporter: 14,
+	elite: 15,
+	"e-vip": 16,
+	vip: 17,
+	"p-user": 18,
+	user: 19,
+	mouse: 20,
+	webirc: 21,
+	"~": 22,
+	"&": 23,
+	"@": 24,
+	"%": 25,
+	"+": 26,
+	"": 27,
+	"support-queue": 50,
+	"invite-queue": 51,
+	normal: 65,
+};
+
+const standardModePriority: {[key: string]: number} = {
+	"~": 1,
+	"&": 2,
+	"!": 2,
+	"@": 3,
+	"%": 4,
+	"+": 5,
+	"": 6,
+	normal: 65,
+};
+
 const invalidClassPatterns = [/^AHIP-/i, /^[A-Z0-9-]{5,}$/, /^\d+$/];
 
 function isValidMAMClass(className: string): boolean {
 	return !invalidClassPatterns.some((pattern) => pattern.test(className));
 }
-
-const mamClassPriority: {[key: string]: number} = {
-	"~": 0,
-	"&": 1,
-	"@": 2,
-	"%": 3,
-	"+": 4,
-	"": 5,
-	dev: 6,
-	sysop: 7,
-	"sr-admin": 8,
-	admin: 9,
-	"uploaders-c": 10,
-	"sr-mod": 11,
-	mod: 12,
-	"t-mod": 13,
-	"f-mod": 14,
-	support: 15,
-	entry: 16,
-	uploader: 17,
-	mouseketeer: 18,
-	supporter: 19,
-	elite: 20,
-	"e-vip": 21,
-	vip: 22,
-	"p-user": 23,
-	user: 24,
-	mouse: 25,
-	webirc: 26,
-	"support-queue": 50,
-	"invite-queue": 51,
-
-	normal: 65,
-};
 
 export default defineComponent({
 	name: "ChatUserList",
@@ -230,6 +258,10 @@ export default defineComponent({
 			);
 		});
 
+		const currentPriorityMap = computed(() => {
+			return isMAMNetwork.value ? mamClassPriority : standardModePriority;
+		});
+
 		const trackerFeaturesEnabled = computed(() => store.state.settings.trackerFeaturesEnabled);
 		const enableClassGrouping = computed(() => store.state.settings.enableClassGrouping);
 		const enableQueueDetection = computed(() => store.state.settings.enableQueueDetection);
@@ -248,23 +280,17 @@ export default defineComponent({
 			return props.channel.name.toLowerCase() === "#help" ? "support-queue" : "invite-queue";
 		});
 
-		// ✅ IMPROVED: Use IRCv3 Account Name as primary grouping, then fallback to hostmask regex
 		const getMamClassFromMetadata = (user: ClientUser): string | null => {
 			if (!trackerFeaturesEnabled.value) return null;
 
-			// 1. Try IRCv3 Account Notify data first (The Gold Standard)
 			const account = (user as any).account;
-			if (account && isValidMAMClass(account)) {
-				return account;
-			}
+			if (account && isValidMAMClass(account)) return account;
 
-			// 2. Fallback to hostmask regex parsing
 			let hostmask = (user as any).hostmask || hostmaskCache.get(user.nick.toLowerCase());
 			if (!hostmask) return null;
 
 			const mamMatch = hostmask.match(/@([^.]+)\.([^.]+)\.mam/);
 			if (mamMatch && isValidMAMClass(mamMatch[1])) return mamMatch[1];
-
 			if (hostmask.startsWith("lounge-user@")) return "webirc";
 
 			if (forceMAMFormatting.value) {
@@ -283,6 +309,7 @@ export default defineComponent({
 				isQueueChannel.value
 			)
 				return false;
+
 			if (props.channel.data?.groupBy === "mamclass") return true;
 
 			return props.channel.users.some((user) => {
@@ -336,7 +363,10 @@ export default defineComponent({
 
 			const sortedGroups: {[key: string]: any[]} = {};
 			Object.keys(groups)
-				.sort((a, b) => (mamClassPriority[a] ?? 999) - (mamClassPriority[b] ?? 999))
+				.sort(
+					(a, b) =>
+						(currentPriorityMap.value[a] ?? 999) - (currentPriorityMap.value[b] ?? 999)
+				)
 				.forEach((key) => {
 					sortedGroups[key] = groups[key];
 				});
@@ -367,18 +397,14 @@ export default defineComponent({
 				if (showUserCount.value) label += ` (${groupedUsers.value[g]?.length || 0})`;
 				return label;
 			},
-			selectUser: () => {
-				/* Select logic */
-			},
+			selectUser: () => {},
 			hoverUser: (u: UserInMessage) => {
 				activeUser.value = u;
 			},
 			removeHoverUser: () => {
 				activeUser.value = null;
 			},
-			navigateUserList: (e: Event, d: number) => {
-				/* Navigation logic */
-			},
+			navigateUserList: (e: Event, d: number) => {},
 		};
 	},
 });
