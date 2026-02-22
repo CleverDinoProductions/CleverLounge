@@ -373,9 +373,9 @@ export default defineComponent({
 			if (!mamClass.value) return "";
 
 			const names: Record<string, string> = {
-				webirc: "WebIRC Gateway",
+				webirc: "User (Guest)",
 				mouse: "Mouse",
-				user: "User",
+				user: "User (Regular)",
 				"p-user": "Power User",
 				vip: "VIP",
 				"e-vip": "Elite VIP",
@@ -404,7 +404,7 @@ export default defineComponent({
 			if (!mamClass.value) return "";
 
 			const shorts: Record<string, string> = {
-				webirc: "WebIRC",
+				webirc: "Guest",
 				mouse: "Mouse",
 				user: "User",
 				"p-user": "PU",
