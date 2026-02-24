@@ -5,21 +5,20 @@
 			ircModeClass,
 			nickColor(store.state.settings.coloredNicks),
 			{active: active},
-			displayClass,
+			displayBackgroundClass,
+			displayTextClass,
 		]"
 		:data-name="user.nick"
 		:data-mam-class="mamClass?.class"
 		role="button"
-		@mouseenter="onHover ? hover : null"
+		@mouseenter="onHover ? hover() : null"
 		@click.prevent="openContextMenu"
 		@contextmenu.prevent="openContextMenu"
 	>
-		<!-- STATUS ICON - Shows online/away/offline status -->
 		<StatusIcon v-if="showStatusIcon && userStatus !== 'offline'" :status="userStatus" />
 
 		<slot>{{ mode }}{{ user.nick }}</slot>
 
-		<!-- Show MAM class icon/badge (with toggles) -->
 		<span
 			v-if="shouldShowBadge"
 			class="mam-class-badge"
@@ -134,26 +133,7 @@ export default defineComponent({
 		const store = useStore();
 
 		// ============================================
-		// NETWORK DETECTION (WITH FORCE TOGGLE!)
-		// ============================================
-		const isMAMChannel = computed(() => {
-			// Check if force formatting is enabled
-			if (store.state.settings.forceMAMFormatting) {
-				return true; // Treat all networks as MAM
-			}
-
-			// Normal detection: check if network name contains "mam" or "myanonamouse"
-			const channelName = props.channel?.name || "";
-			return (
-				channelName.includes("#anonamouse.net") ||
-				channelName.includes("#am-members") ||
-				channelName.includes("#an-q") ||
-				channelName.includes("#help")
-			);
-		});
-
-		// ============================================
-		// TRACKER SETTINGS
+		// SETTINGS & DETECTION
 		// ============================================
 		const trackerFeaturesEnabled = computed(() => store.state.settings.trackerFeaturesEnabled);
 		const useMamTextColors = computed(() => store.state.settings.useMamTextColors);
@@ -165,44 +145,46 @@ export default defineComponent({
 		const enableHostmaskCache = computed(() => store.state.settings.enableHostmaskCache);
 		const forceUserModeColors = computed(() => store.state.settings.forceUserModeColors);
 		const forceMAMFormatting = computed(() => store.state.settings.forceMAMFormatting);
-
-		// NEW: Status icon setting
 		const showStatusIcon = computed(() => store.state.settings.showStatusIcons);
+		const useShoutboxLogic = computed(() => store.state.settings.useShoutboxLogic);
 
-		// ============================================
-		// IRC MODE
-		// ============================================
-		const mode = computed(() => {
-			if (props.user.modes) {
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-				return props.user.modes[0];
-			}
-
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-			return props.user.mode;
+		const isMAMChannel = computed(() => {
+			if (forceMAMFormatting.value) return true;
+			const channelName = props.channel?.name || "";
+			return (
+				channelName.includes("#anonamouse.net") ||
+				channelName.includes("#am-members") ||
+				channelName.includes("#an-q") ||
+				channelName.includes("#help")
+			);
 		});
 
-		// ✅ FIXED: IRC mode class - ONLY applied when IRC mode color settings are enabled
+		// ============================================
+		// IRC MODE & COLORS
+		// ============================================
+		const mode = computed(() => {
+			if (props.user.modes) return props.user.modes[0];
+			return (props.user as any).mode;
+		});
+
 		const ircModeClass = computed(() => {
-			// Check if IRC mode colors are enabled (either chat or userlist)
 			const colorIRCModesChatMessages = store.state.settings.colorIRCModesChatMessages;
 			const colorIRCModesUserlist = store.state.settings.colorIRCModesUserlist;
 
-			// If both are disabled, don't add mode classes
-			if (!colorIRCModesChatMessages && !colorIRCModesUserlist) {
-				return "";
-			}
+			if (!colorIRCModesChatMessages && !colorIRCModesUserlist) return "";
 
-			// Check if this is a MAM channel and forceUserModeColors is disabled
 			if (isMAMChannel.value && !forceUserModeColors.value) {
-				// If any of the color settings are enabled and forceUserModeColors is disabled, don't add mode classes
-				if (useMamTextColors.value || useTextColors.value || useBackgroundColors.value) {
+				if (
+					useMamTextColors.value ||
+					useTextColors.value ||
+					useBackgroundColors.value ||
+					useShoutboxLogic.value
+				) {
 					return "";
 				}
 			}
 
 			const userMode = mode.value;
-
 			if (!userMode) return "user-mode-normal";
 
 			const modeMap: Record<string, string> = {
@@ -216,131 +198,105 @@ export default defineComponent({
 		});
 
 		// ============================================
-		// HOSTMASK DETECTION
+		// HOSTMASK & CLASS DETECTION
 		// ============================================
 		const getHostmask = computed(() => {
-			// Check if tracker features and cache enabled
-			if (!trackerFeaturesEnabled.value || !enableHostmaskCache.value) {
-				return "";
-			}
-
-			// First check if user object has hostmask (from messages)
+			if (!trackerFeaturesEnabled.value || !enableHostmaskCache.value) return "";
 			const directHostmask = (props.user as any).hostmask;
-
 			if (directHostmask) {
-				// Cache it for future use with persistence
 				updateCache(props.user.nick, directHostmask);
 				return directHostmask;
 			}
+			return hostmaskCache.get(props.user.nick.toLowerCase()) || "";
+		});
 
-			// Try to get from cache (from WHOIS or previous messages)
-			const cachedHostmask = hostmaskCache.get(props.user.nick.toLowerCase());
-			if (cachedHostmask) {
-				return cachedHostmask;
+		const mamClass = computed(() => {
+			if (!trackerFeaturesEnabled.value) return null;
+			const hostmask = getHostmask.value;
+			if (!hostmask) return null;
+
+			const mamMatch = hostmask.match(/@([^.]+)\.([^.]+)\.mam/);
+			if (mamMatch) return {class: mamMatch[1], type: mamMatch[2]};
+
+			if (hostmask.startsWith("lounge-user@")) return {class: "webirc", type: "gateway"};
+
+			if (forceMAMFormatting.value) {
+				const genericMatch = hostmask.match(/@([^.]+)\.([^.]+)\./);
+				if (genericMatch) {
+					const extracted = genericMatch[1];
+					if (
+						!/^[A-Z0-9-]{5,}$/.test(extracted) &&
+						!extracted.startsWith("AHIP-") &&
+						extracted !== "SERVICES"
+					) {
+						return {class: extracted, type: genericMatch[2]};
+					}
+				}
+			}
+			return null;
+		});
+
+		// ============================================
+		// DISPLAY PROPERTIES
+		// ============================================
+		const isStaff = computed(() => {
+			if (!mamClass.value) return false;
+			const staffRanks = [
+				"admin",
+				"sr-admin",
+				"mod",
+				"sr-mod",
+				"t-mod",
+				"f-mod",
+				"support",
+				"entry",
+				"sysop",
+				"dev",
+				"uploaders-c",
+			];
+			return staffRanks.includes(mamClass.value.class);
+		});
+
+		const displayBackgroundClass = computed(() => {
+			if (!trackerFeaturesEnabled.value || !mamClass.value) return "";
+
+			// Shoutbox Logic: Only Staff get background pills
+			if (useShoutboxLogic.value) {
+				return isStaff.value ? `mam-class-background-${mamClass.value.class}` : "";
+			}
+
+			// Normal Logic: Background colors enabled for everyone
+			if (useMamTextColors.value && useBackgroundColors.value) {
+				return `mam-class-background-${mamClass.value.class}`;
 			}
 
 			return "";
 		});
 
-		// ============================================
-		// MAM CLASS DETECTION
-		// ============================================
-		const mamClass = computed(() => {
-			// Check if tracker features enabled
-			if (!trackerFeaturesEnabled.value) {
-				return null;
+		const displayTextClass = computed(() => {
+			if (!trackerFeaturesEnabled.value || !mamClass.value) return "";
+
+			// Shoutbox Logic: Staff get high-contrast foreground, Members get text colors
+			if (useShoutboxLogic.value) {
+				return isStaff.value
+					? `mam-class-foreground-${mamClass.value.class}`
+					: `mam-class-text-${mamClass.value.class}`;
 			}
 
-			const hostmask = getHostmask.value;
-
-			if (!hostmask) {
-				return null;
+			// Normal Logic
+			if (useMamTextColors.value) {
+				return `mam-class-text-${mamClass.value.class}`;
 			}
 
-			// Try MAM pattern first
-			// Match pattern: user@CLASS.TYPE.mam
-			const mamMatch = hostmask.match(/@([^.]+)\.([^.]+)\.mam/);
-
-			if (mamMatch) {
-				return {
-					class: mamMatch[1],
-					type: mamMatch[2],
-				};
+			if (useTextColors.value) {
+				return `mam-class-foreground-${mamClass.value.class}`;
 			}
 
-			// Detect lounge-user@* webirc (MAM webirc gateway users)
-			if (hostmask.startsWith("lounge-user@")) {
-				return {
-					class: "webirc",
-					type: "gateway",
-				};
-			}
-
-			// If force formatting is enabled, try generic patterns
-			if (forceMAMFormatting.value) {
-				// Try pattern: user@CLASS.TYPE.anything
-				const genericMatch = hostmask.match(/@([^.]+)\.([^.]+)\./);
-
-				if (genericMatch) {
-					const extractedClass = genericMatch[1];
-
-					// Filter out IRC server names
-					if (
-						!/^[A-Z0-9-]{5,}$/.test(extractedClass) &&
-						!extractedClass.startsWith("AHIP-") &&
-						extractedClass !== "SERVICES"
-					) {
-						return {
-							class: extractedClass,
-							type: genericMatch[2],
-						};
-					}
-				}
-
-				// Try pattern: user@CLASS.anything (no type)
-				const simpleMatch = hostmask.match(/@([^.@]+)\./);
-
-				if (simpleMatch) {
-					const extractedClass = simpleMatch[1];
-
-					// Filter out IRC server names
-					if (
-						!/^[A-Z0-9-]{5,}$/.test(extractedClass) &&
-						!extractedClass.startsWith("AHIP-") &&
-						extractedClass !== "SERVICES"
-					) {
-						return {
-							class: extractedClass,
-							type: "member",
-						};
-					}
-				}
-			}
-
-			return null;
+			return "";
 		});
 
-		// MAM class CSS class (only applied when useTextColors OR useBackgroundColors is enabled)
-		const mamClassCssClass = computed(() => {
-			// Don't apply MAM class if both color systems are disabled
-			if (!useMamTextColors.value || !useTextColors.value || !useBackgroundColors.value) {
-				return "";
-			}
-
-			if (!mamClass.value) return "";
-
-			// Return the class name (colors controlled by CSS based on body classes)
-			return `mam-class-${mamClass.value.class}`;
-		});
-
-		// ============================================
-		// MAM CLASS DISPLAY
-		// ============================================
-
-		// MAM class icons
 		const mamClassIcon = computed(() => {
 			if (!mamClass.value) return "";
-
 			const icons: Record<string, string> = {
 				webirc: "🌐",
 				mouse: "🐭",
@@ -364,14 +320,11 @@ export default defineComponent({
 				dev: "💻",
 				"uploaders-c": "📤👑",
 			};
-
 			return icons[mamClass.value.class] || "";
 		});
 
-		// MAM class display name
 		const mamClassName = computed(() => {
 			if (!mamClass.value) return "";
-
 			const names: Record<string, string> = {
 				webirc: "User (Guest)",
 				mouse: "Mouse",
@@ -395,14 +348,11 @@ export default defineComponent({
 				dev: "Developer",
 				"uploaders-c": "Uploader Coordinator",
 			};
-
 			return names[mamClass.value.class] || mamClass.value.class;
 		});
 
-		// Short name for badge
 		const mamClassShort = computed(() => {
 			if (!mamClass.value) return "";
-
 			const shorts: Record<string, string> = {
 				webirc: "Guest",
 				mouse: "Mouse",
@@ -426,71 +376,27 @@ export default defineComponent({
 				dev: "Dev",
 				"uploaders-c": "UL-C",
 			};
-
 			return shorts[mamClass.value.class] || "";
 		});
 
-		// ============================================
-		// BADGE VISIBILITY
-		// ============================================
 		const shouldShowBadge = computed(() => {
-			// Must have tracker features enabled
-			if (!trackerFeaturesEnabled.value) return false;
-
-			// Must have badges enabled
-			if (!showClassBadges.value) return false;
-
-			// Must have a MAM class
-			if (!mamClass.value) return false;
-
-			// Must have icon and short text
-			if (!mamClassIcon.value || !mamClassShort.value) return false;
-
-			return true;
+			return (
+				trackerFeaturesEnabled.value &&
+				showClassBadges.value &&
+				mamClass.value &&
+				mamClassIcon.value &&
+				mamClassShort.value
+			);
 		});
 
-		// ============================================
-		// USER STATUS from MONITOR
-		// ============================================
 		const userStatus = computed(() => {
-			try {
-				const monitorData = (props.user as any)?.monitorStatus;
-				if (monitorData) {
-					if (monitorData.away) return "away";
-					if (monitorData.online) return "online";
-				}
-			} catch (e) {
-				// Silently fail if monitoring data is malformed
+			const monitorData = (props.user as any)?.monitorStatus;
+			if (monitorData) {
+				if (monitorData.away) return "away";
+				if (monitorData.online) return "online";
 			}
 			return "offline";
 		});
-
-		// ============================================
-		// DISPLAY CLASS
-		// ============================================
-		const displayClass = computed(() => {
-			// Combine IRC mode class + MAM class
-			// CSS will handle which colors to apply based on body classes:
-			// - body.tracker-official-colors → MAM text colors
-			// - body.tracker-background-colors → MAM background colors
-			return `${mamClassCssClass.value}`.trim();
-		});
-
-		// ============================================
-		// HELPERS
-		// ============================================
-
-		// nickColor as function
-		const nickColor = (enabled: boolean) => {
-			return enabled ? colorClass(props.user.nick!) : "";
-		};
-
-		const hover = () => {
-			if (props.onHover) {
-				return props.onHover(props.user as UserInMessage);
-			}
-			return null;
-		};
 
 		const openContextMenu = (event: Event) => {
 			eventbus.emit("contextmenu:user", {
@@ -504,7 +410,8 @@ export default defineComponent({
 		return {
 			mode,
 			ircModeClass,
-			displayClass,
+			displayBackgroundClass,
+			displayTextClass,
 			mamClassIcon,
 			mamClassShort,
 			mamClassName,
@@ -512,11 +419,10 @@ export default defineComponent({
 			shouldShowBadge,
 			compactBadges,
 			showClassTooltips,
-			nickColor,
-			hover,
+			nickColor: (enabled: boolean) => (enabled ? colorClass(props.user.nick!) : ""),
+			hover: () => (props.onHover ? props.onHover(props.user as UserInMessage) : null),
 			openContextMenu,
 			store,
-			// NEW: Status icon support
 			showStatusIcon,
 			userStatus,
 		};

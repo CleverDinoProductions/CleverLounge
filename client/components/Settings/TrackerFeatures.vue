@@ -5,7 +5,6 @@
 			Customize MAM-specific features and visual enhancements for CleverLounge
 		</p>
 
-		<!-- Master Toggle -->
 		<div class="settings-group">
 			<label class="opt">
 				<input
@@ -25,7 +24,79 @@
 		</div>
 
 		<template v-if="settings.trackerFeaturesEnabled">
-			<!-- Userlist Grouping -->
+			<div class="settings-preview-section">
+				<h2 class="settings-subheading">Theme & Badge Preview</h2>
+
+				<div class="preview-container">
+					<div class="preview-column">
+						<small class="preview-type-label">Userlist Sidebar</small>
+						<div
+							class="preview-box sidebar-preview"
+							:class="{'compact-badges': settings.compactBadges}"
+						>
+							<div class="preview-item">
+								<span
+									:class="[
+										'user',
+										settings.colorIRCModesUserlist ? 'user-mode-owner' : '',
+										getUserClasses('admin'),
+									]"
+								>
+									👑 AegonVI
+									<span v-if="settings.showClassBadges" class="mam-class-badge">
+										<span
+											v-if="!settings.compactBadges"
+											class="mam-class-badge-icon"
+											>👑</span
+										>
+										<span class="mam-class-badge-text">Sr-Admin</span>
+									</span>
+								</span>
+							</div>
+							<div class="preview-item">
+								<span :class="['user', getUserClasses('vip')]">
+									DinoDude
+									<span v-if="settings.showClassBadges" class="mam-class-badge">
+										<span
+											v-if="!settings.compactBadges"
+											class="mam-class-badge-icon"
+											>💎</span
+										>
+										<span class="mam-class-badge-text">VIP</span>
+									</span>
+								</span>
+							</div>
+						</div>
+					</div>
+
+					<div class="preview-column">
+						<small class="preview-type-label">Chat Messages</small>
+						<div class="preview-box chat-preview">
+							<div class="chat-line">
+								<span class="chat-time">15:24</span>
+								<span
+									:class="[
+										'chat-user',
+										settings.colorIRCModesChatMessages ? 'user-mode-owner' : '',
+										getUserClasses('admin'),
+									]"
+								>
+									👑 AegonVI
+								</span>
+								<span class="chat-text">Welcome to the tracker!</span>
+							</div>
+							<div class="chat-line">
+								<span class="chat-time">15:25</span>
+								<span :class="['chat-user', getUserClasses('vip')]">
+									DinoDude
+								</span>
+								<span class="chat-text">Thanks! Glad to be here.</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
 			<h2 class="settings-subheading">Userlist Grouping</h2>
 
 			<label class="opt">
@@ -93,8 +164,23 @@
 				Automatically detect and group users in support/invite queues
 			</p>
 
-			<!-- Visual Styling -->
 			<h2 class="settings-subheading">Visual Styling</h2>
+
+			<label class="opt">
+				<input
+					type="checkbox"
+					name="useShoutboxLogic"
+					:checked="settings.useShoutboxLogic"
+					@change="
+						$emit('change', {name: 'useShoutboxLogic', value: $event.target.checked})
+					"
+				/>
+				Enable Shoutbox-style logic
+			</label>
+			<p class="settings-help">
+				Applies background colors to Staff, but only text colors to regular members. Matches
+				the official MAM shoutbox behavior.
+			</p>
 
 			<label class="opt">
 				<input
@@ -171,7 +257,6 @@
 				Keep group headers (ADMIN, MOD, etc.) visible when scrolling userlist
 			</p>
 
-			<!-- Visual Effects -->
 			<h2 class="settings-subheading">Visual Effects</h2>
 
 			<label class="opt">
@@ -239,7 +324,6 @@
 			</label>
 			<p class="settings-help">Reduce opacity of users who haven't chatted recently</p>
 
-			<!-- Behavioral Features -->
 			<h2 class="settings-subheading">Behavior</h2>
 
 			<label class="opt">
@@ -294,7 +378,6 @@
 			</label>
 			<p class="settings-help">Show desktop notification when staff members join channel</p>
 
-			<!-- Data Display -->
 			<h2 class="settings-subheading">Data Display</h2>
 
 			<label class="opt">
@@ -341,7 +424,6 @@
 			</label>
 			<p class="settings-help">Display when user was last seen active in channel</p>
 
-			<!-- Advanced Features -->
 			<h2 class="settings-subheading">Advanced</h2>
 
 			<label class="opt">
@@ -460,6 +542,90 @@
 	opacity: 0.5;
 	cursor: not-allowed;
 }
+
+/* ============================================
+   PREVIEW SECTION STYLES
+   ============================================ */
+.settings-preview-section {
+	margin-bottom: 30px;
+	padding: 15px;
+	background: rgba(0, 0, 0, 0.2);
+	border-radius: 8px;
+	border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.preview-container {
+	display: grid;
+	grid-template-columns: 1fr 1.5fr;
+	gap: 15px;
+}
+
+.preview-column {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+}
+
+.preview-type-label {
+	font-size: 0.7rem;
+	color: #888;
+	text-transform: uppercase;
+	font-weight: bold;
+	letter-spacing: 0.5px;
+}
+
+.preview-box {
+	background: var(--window-bg-color);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 4px;
+	padding: 10px;
+	height: 90px;
+	overflow: hidden;
+	color: var(--body-color);
+}
+
+/* Sidebar Preview Specifics */
+.sidebar-preview .preview-item {
+	padding: 2px 0;
+	font-size: 14px;
+}
+
+/* Chat Preview Specifics */
+.chat-preview {
+	font-size: 14px;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.chat-line {
+	white-space: nowrap;
+	display: flex;
+	gap: 8px;
+	align-items: baseline;
+}
+
+.chat-time {
+	color: var(--body-color-muted);
+	font-size: 12px;
+	min-width: 35px;
+}
+
+.chat-user {
+	font-weight: bold;
+	cursor: pointer;
+}
+
+.chat-text {
+	color: var(--body-color);
+	white-space: normal;
+}
+
+.preview-label {
+	color: var(--body-color-muted);
+	font-size: 0.8em;
+	font-style: italic;
+}
 </style>
 
 <script lang="ts">
@@ -473,8 +639,30 @@ export default defineComponent({
 		const store = useStore();
 		const settings = computed(() => store.state.settings);
 
+		/**
+		 * Helper function to build CSS classes for the preview users.
+		 * Logic matches Username.vue implementation.
+		 */
+		const getUserClasses = (cls: string) => {
+			const classes = [];
+			// Apply class-based background styling
+			if (settings.value.useBackgroundColors) {
+				classes.push(`mam-class-background-${cls}`);
+			}
+			// Apply MAM text coloring
+			if (settings.value.useMamTextColors) {
+				classes.push(`mam-class-text-${cls}`);
+			}
+			// Apply foreground contrast colors
+			if (settings.value.useTextColors) {
+				classes.push(`mam-class-foreground-${cls}`);
+			}
+			return classes.join(" ");
+		};
+
 		return {
 			settings,
+			getUserClasses,
 		};
 	},
 });

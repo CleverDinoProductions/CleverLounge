@@ -176,6 +176,14 @@ const defaultConfig = {
 		},
 	},
 
+	useShoutboxLogic: {
+		default: false,
+		sync: "always" as const,
+		apply(store: TypedStore, value: boolean) {
+			window.dispatchEvent(new Event("resize"));
+		},
+	},
+
 	// Visual Styling
 	useMamTextColors: {
 		default: true,
