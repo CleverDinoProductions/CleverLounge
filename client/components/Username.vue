@@ -203,10 +203,12 @@ export default defineComponent({
 		const getHostmask = computed(() => {
 			if (!trackerFeaturesEnabled.value || !enableHostmaskCache.value) return "";
 			const directHostmask = (props.user as any).hostmask;
+
 			if (directHostmask) {
 				updateCache(props.user.nick, directHostmask);
 				return directHostmask;
 			}
+
 			return hostmaskCache.get(props.user.nick.toLowerCase()) || "";
 		});
 
@@ -222,8 +224,10 @@ export default defineComponent({
 
 			if (forceMAMFormatting.value) {
 				const genericMatch = hostmask.match(/@([^.]+)\.([^.]+)\./);
+
 				if (genericMatch) {
 					const extracted = genericMatch[1];
+
 					if (
 						!/^[A-Z0-9-]{5,}$/.test(extracted) &&
 						!extracted.startsWith("AHIP-") &&
@@ -233,6 +237,7 @@ export default defineComponent({
 					}
 				}
 			}
+
 			return null;
 		});
 
@@ -391,10 +396,12 @@ export default defineComponent({
 
 		const userStatus = computed(() => {
 			const monitorData = (props.user as any)?.monitorStatus;
+
 			if (monitorData) {
 				if (monitorData.away) return "away";
 				if (monitorData.online) return "online";
 			}
+
 			return "offline";
 		});
 
