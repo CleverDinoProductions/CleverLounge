@@ -3971,25 +3971,21 @@ body.tracker-background-colors .user.mam-class-background-mouse {
 body.tracker-mam-text-colors .user.mam-class-text-dev,
 body.tracker-mam-text-colors .mam-class-badge.mam-class-text-dev {
 	color: #093 !important;
-	font-weight: 900;
 }
 
 body.tracker-mam-text-colors .user.mam-class-text-sysop,
 body.tracker-mam-text-colors .mam-class-badge.mam-class-text-sysop {
 	color: #336699 !important;
-	font-weight: 900;
 }
 
 body.tracker-mam-text-colors .user.mam-class-text-sr-admin,
 body.tracker-mam-text-colors .mam-class-badge.mam-class-text-sr-admin {
 	color: #006600 !important;
-	font-weight: 900;
 }
 
 body.tracker-mam-text-colors .user.mam-class-text-admin,
 body.tracker-mam-text-colors .mam-class-badge.mam-class-text-admin {
 	color: #30AA0F !important;
-	font-weight: 900;
 }
 
 body.tracker-mam-text-colors .user.mam-class-text-uploader-coord,
@@ -3997,89 +3993,75 @@ body.tracker-mam-text-colors .mam-class-badge.mam-class-text-uploader-coord,
 body.tracker-mam-text-colors .user.mam-class-text-uploaders-c,
 body.tracker-mam-text-colors .mam-class-badge.mam-class-text-uploaders-c {
 	color: #B05F3C !important;
-	font-weight: bold;
 }
 
 /* Moderator Classes - Text Colors */
 body.tracker-mam-text-colors .user.mam-class-text-sr-mod,
 body.tracker-mam-text-colors .mam-class-badge.mam-class-text-sr-mod {
 	color: #FF4500 !important;
-	font-weight: bold;
 }
 
 body.tracker-mam-text-colors .user.mam-class-text-mod,
 body.tracker-mam-text-colors .mam-class-badge.mam-class-text-mod {
 	color: #FFA500 !important;
-	font-weight: bold;
 }
 
 body.tracker-mam-text-colors .user.mam-class-text-t-mod,
 body.tracker-mam-text-colors .mam-class-badge.mam-class-text-t-mod {
 	color: #E9967A !important;
-	font-weight: bold;
 }
 
 body.tracker-mam-text-colors .user.mam-class-text-f-mod,
 body.tracker-mam-text-colors .mam-class-badge.mam-class-text-f-mod {
 	color: #FF7F50 !important;
-	font-weight: bold;
 }
 
 /* Support Staff - Text Colors */
 body.tracker-mam-text-colors .user.mam-class-text-support,
 body.tracker-mam-text-colors .mam-class-badge.mam-class-text-support {
 	color: #FF0099 !important;
-	font-weight: bold;
 }
 
 body.tracker-mam-text-colors .user.mam-class-text-entry,
 body.tracker-mam-text-colors .mam-class-badge.mam-class-text-entry {
 	color: #FF0A23 !important;
-	font-weight: bold;
 }
 
 /* Special Member Classes - Text Colors */
 body.tracker-mam-text-colors .user.mam-class-text-uploader,
 body.tracker-mam-text-colors .mam-class-badge.mam-class-text-uploader {
 	color: #B05F3C !important;
-	font-weight: bold;
 }
 
 body.tracker-mam-text-colors .user.mam-class-text-mouseketeer,
 body.tracker-mam-text-colors .mam-class-badge.mam-class-text-mouseketeer {
 	color: #696969 !important;
-	font-weight: bold;
 }
 
 body.tracker-mam-text-colors .user.mam-class-text-supporter,
 body.tracker-mam-text-colors .mam-class-badge.mam-class-text-supporter {
 	color: #BABA25 !important;
-	font-weight: bold;
 }
 
 /* VIP Classes - Text Colors */
 body.tracker-mam-text-colors .user.mam-class-text-elite,
 body.tracker-mam-text-colors .mam-class-badge.mam-class-text-elite {
 	color: #3366CC !important;
-	font-weight: bold;
 }
 
 body.tracker-mam-text-colors .user.mam-class-text-e-vip,
 body.tracker-mam-text-colors .mam-class-badge.mam-class-text-e-vip {
 	color: #7C2FE0 !important;
-	font-weight: bold;
 }
 
 body.tracker-mam-text-colors .user.mam-class-text-vip,
 body.tracker-mam-text-colors .mam-class-badge.mam-class-text-vip {
 	color: #985BE8 !important;
-	font-weight: bold;
 }
 
 body.tracker-mam-text-colors .user.mam-class-text-p-user,
 body.tracker-mam-text-colors .mam-class-badge.mam-class-text-p-user {
 	color: #D21E36 !important;
-	font-weight: bold;
 }
 
 /* Regular User Classes - Text Colors */
