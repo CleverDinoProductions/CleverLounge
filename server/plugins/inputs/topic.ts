@@ -19,7 +19,15 @@ const input: PluginInputHandler = function ({irc}, chan, cmd, args) {
 		return;
 	}
 
-	irc.setTopic(chan.name, args.join(" "));
+	// If no arguments are provided, sending just the channel name to TOPIC
+	// fetches the current topic from the server.
+	if (args.length === 0) {
+		irc.raw("TOPIC", chan.name);
+	} else {
+		// If arguments exist, we join them and set the new topic.
+		irc.raw("TOPIC", chan.name, args.join(" "));
+	}
+
 	return true;
 };
 
