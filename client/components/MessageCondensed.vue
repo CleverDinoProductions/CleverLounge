@@ -91,9 +91,6 @@ export default defineComponent({
 				}
 			}
 
-			// Count quits as parts in condensed messages to reduce information density
-			obj.part += obj.quit;
-
 			const strings: string[] = [];
 			condensedTypes.forEach((type) => {
 				if (obj[type]) {
@@ -116,6 +113,12 @@ export default defineComponent({
 							strings.push(
 								String(obj[type]) +
 									(obj[type] > 1 ? " users have left" : " user has left")
+							);
+							break;
+						case "quit":
+							strings.push(
+								String(obj[type]) +
+									(obj[type] > 1 ? " users have quit" : " user has quit")
 							);
 							break;
 						case "nick":
