@@ -43,7 +43,11 @@
 									]"
 								>
 									👑 AegonVI
-									<span v-if="settings.showClassBadges" class="mam-class-badge">
+									<span
+										v-if="settings.showClassBadges"
+										class="mam-class-badge"
+										:class="{compact: settings.compactBadges}"
+									>
 										<span
 											v-if="!settings.compactBadges"
 											class="mam-class-badge-icon"
@@ -54,9 +58,19 @@
 								</span>
 							</div>
 							<div class="preview-item">
-								<span :class="['user', getUserClasses('vip')]">
+								<span
+									:class="[
+										'user',
+										getUserClasses('vip'),
+										settings.animateQueue ? 'mam-queue-pulse' : '',
+									]"
+								>
 									DinoDude
-									<span v-if="settings.showClassBadges" class="mam-class-badge">
+									<span
+										v-if="settings.showClassBadges"
+										class="mam-class-badge"
+										:class="{compact: settings.compactBadges}"
+									>
 										<span
 											v-if="!settings.compactBadges"
 											class="mam-class-badge-icon"
@@ -83,7 +97,11 @@
 								>
 									👑 AegonVI
 								</span>
-								<span class="chat-text">Welcome to the tracker!</span>
+								<span
+									class="chat-text"
+									:style="{opacity: settings.fadeInactiveUsers ? 0.6 : 1}"
+									>Welcome to the tracker!</span
+								>
 							</div>
 							<div class="chat-line">
 								<span class="chat-time">15:25</span>
@@ -95,6 +113,9 @@
 						</div>
 					</div>
 				</div>
+				<p class="preview-info-text" v-if="settings.useShoutboxLogic">
+					<i>* Shoutbox logic active: Staff use backgrounds, members use text only.</i>
+				</p>
 			</div>
 
 			<h2 class="settings-subheading">Userlist Grouping</h2>
