@@ -24,6 +24,75 @@
 		</div>
 
 		<template v-if="settings.trackerFeaturesEnabled">
+			<h2 class="settings-subheading">Userlist Grouping</h2>
+
+			<label class="opt">
+				<input
+					type="checkbox"
+					name="forceMAMFormatting"
+					:checked="settings.forceMAMFormatting"
+					@change="
+						$emit('change', {name: 'forceMAMFormatting', value: $event.target.checked})
+					"
+				/>
+				Force MAM formatting on all networks
+			</label>
+			<p class="settings-help">
+				Apply MAM badges, colors, and grouping to all IRC networks (not just MAM). Useful if
+				you use MAM usernames on other networks like #thelounge on Libera.Chat.
+			</p>
+
+			<label class="opt">
+				<input
+					type="checkbox"
+					name="forceUserModeColors"
+					:checked="settings.forceUserModeColors"
+					@change="
+						$emit('change', {name: 'forceUserModeColors', value: $event.target.checked})
+					"
+				/>
+				Enable User Mode Colors on MAM networks
+			</label>
+			<p class="settings-help">
+				Apply IRC user mode colors (@, %, +) even on MAM networks. Disable this to
+				prioritize MAM class colors over IRC modes.
+			</p>
+
+			<label class="opt">
+				<input
+					type="checkbox"
+					name="enableClassGrouping"
+					:checked="settings.enableClassGrouping"
+					@change="
+						$emit('change', {name: 'enableClassGrouping', value: $event.target.checked})
+					"
+				/>
+				Enable MAM class grouping
+			</label>
+			<p class="settings-help">
+				Group users by MAM class (Dev, Admin, Mod, VIP, etc.) instead of IRC modes
+			</p>
+
+			<label class="opt">
+				<input
+					type="checkbox"
+					name="enableQueueDetection"
+					:checked="settings.enableQueueDetection"
+					@change="
+						$emit('change', {
+							name: 'enableQueueDetection',
+							value: $event.target.checked,
+						})
+					"
+				/>
+				Enable queue detection
+			</label>
+			<p class="settings-help">
+				Automatically detect and group users in support/invite queues
+			</p>
+
+			<h2 class="settings-subheading">Visual Styling</h2>
+
 			<div class="settings-preview-section">
 				<h2 class="settings-subheading">Theme & Badge Preview</h2>
 
@@ -117,75 +186,6 @@
 					<i>* Shoutbox logic active: Staff use backgrounds, members use text only.</i>
 				</p>
 			</div>
-
-			<h2 class="settings-subheading">Userlist Grouping</h2>
-
-			<label class="opt">
-				<input
-					type="checkbox"
-					name="forceMAMFormatting"
-					:checked="settings.forceMAMFormatting"
-					@change="
-						$emit('change', {name: 'forceMAMFormatting', value: $event.target.checked})
-					"
-				/>
-				Force MAM formatting on all networks
-			</label>
-			<p class="settings-help">
-				Apply MAM badges, colors, and grouping to all IRC networks (not just MAM). Useful if
-				you use MAM usernames on other networks like #thelounge on Libera.Chat.
-			</p>
-
-			<label class="opt">
-				<input
-					type="checkbox"
-					name="forceUserModeColors"
-					:checked="settings.forceUserModeColors"
-					@change="
-						$emit('change', {name: 'forceUserModeColors', value: $event.target.checked})
-					"
-				/>
-				Enable User Mode Colors on MAM networks
-			</label>
-			<p class="settings-help">
-				Apply IRC user mode colors (@, %, +) even on MAM networks. Disable this to
-				prioritize MAM class colors over IRC modes.
-			</p>
-
-			<label class="opt">
-				<input
-					type="checkbox"
-					name="enableClassGrouping"
-					:checked="settings.enableClassGrouping"
-					@change="
-						$emit('change', {name: 'enableClassGrouping', value: $event.target.checked})
-					"
-				/>
-				Enable MAM class grouping
-			</label>
-			<p class="settings-help">
-				Group users by MAM class (Dev, Admin, Mod, VIP, etc.) instead of IRC modes
-			</p>
-
-			<label class="opt">
-				<input
-					type="checkbox"
-					name="enableQueueDetection"
-					:checked="settings.enableQueueDetection"
-					@change="
-						$emit('change', {
-							name: 'enableQueueDetection',
-							value: $event.target.checked,
-						})
-					"
-				/>
-				Enable queue detection
-			</label>
-			<p class="settings-help">
-				Automatically detect and group users in support/invite queues
-			</p>
-
-			<h2 class="settings-subheading">Visual Styling</h2>
 
 			<label class="opt">
 				<input
