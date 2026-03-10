@@ -271,8 +271,19 @@ export default defineComponent({
 			}
 
 			// Normal Logic: Background colors enabled for everyone
-			if (useMamTextColors.value && useBackgroundColors.value) {
+			if (useBackgroundColors.value) {
 				return `mam-class-background-${mamClass.value.class}`;
+			}
+
+			return "";
+		});
+
+		const displayMamTextColors = computed(() => {
+			if (!trackerFeaturesEnabled.value || !mamClass.value) return false;
+
+			// Normal Logic
+			if (useMamTextColors.value) {
+				return `mam-class-text-${mamClass.value.class}`;
 			}
 
 			return "";
@@ -286,11 +297,6 @@ export default defineComponent({
 				return isStaff.value
 					? `mam-class-foreground-${mamClass.value.class}`
 					: `mam-class-text-${mamClass.value.class}`;
-			}
-
-			// Normal Logic
-			if (useMamTextColors.value) {
-				return `mam-class-text-${mamClass.value.class}`;
 			}
 
 			if (useTextColors.value) {
@@ -418,6 +424,7 @@ export default defineComponent({
 			mode,
 			ircModeClass,
 			displayBackgroundClass,
+			displayMamTextColors,
 			displayTextClass,
 			mamClassIcon,
 			mamClassShort,
