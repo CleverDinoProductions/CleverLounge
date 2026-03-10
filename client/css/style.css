@@ -4468,31 +4468,31 @@ body.tracker-debug .user-group-header::before {
 
 /* IRC Mode Colors - CHAT MESSAGES */
 body.color-irc-modes-chat .msg .from .user.user-mode-owner {
-	color: #FFD700;
+	color: #FFD700 !important;
 	/* Gold */
 	font-weight: 900 !important;
 }
 
 body.color-irc-modes-chat .msg .from .user.user-mode-admin {
-	color: violet;
+	color: violet !important;
 	/* Violet */
 	font-weight: 900 !important;
 }
 
 body.color-irc-modes-chat .msg .from .user.user-mode-op {
-	color: red;
+	color: red !important;
 	/* Red */
 	font-weight: bold !important;
 }
 
 body.color-irc-modes-chat .msg .from .user.user-mode-half-op {
-	color: darkorange;
+	color: darkorange !important;
 	/* Dark Orange */
 	font-weight: bold !important;
 }
 
 body.color-irc-modes-chat .msg .from .user.user-mode-voice {
-	color: cornflowerblue;
+	color: cornflowerblue !important;
 	/* Cornflower Blue */
 	font-weight: 500 !important;
 }
@@ -4504,31 +4504,31 @@ body.color-irc-modes-chat .msg .from .user.user-mode-normal {
 
 /* IRC Mode Colors - USERLIST */
 body.color-irc-modes-userlist .userlist .user.user-mode-owner {
-	color: gold;
+	color: gold !important;
 	/* Gold */
 	font-weight: 900 !important;
 }
 
 body.color-irc-modes-userlist .userlist .user.user-mode-admin {
-	color: violet;
+	color: violet !important;
 	/* Violet */
 	font-weight: 900 !important;
 }
 
 body.color-irc-modes-userlist .userlist .user.user-mode-op {
-	color: red;
+	color: red !important;
 	/* Red */
 	font-weight: bold !important;
 }
 
 body.color-irc-modes-userlist .userlist .user.user-mode-half-op {
-	color: darkorange;
+	color: darkorange !important;
 	/* Dark Orange */
 	font-weight: bold !important;
 }
 
 body.color-irc-modes-userlist .userlist .user.user-mode-voice {
-	color: cornflowerblue;
+	color: cornflowerblue !important;
 	/* Cornflower Blue */
 	font-weight: 500 !important;
 }
