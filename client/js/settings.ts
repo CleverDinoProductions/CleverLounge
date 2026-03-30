@@ -233,6 +233,18 @@ const defaultConfig = {
 		},
 	},
 
+	showUserModeBadges: {
+		default: true,
+		sync: "always" as const,
+		apply(store: TypedStore, value: boolean) {
+			if (value) {
+				document.body.classList.add("show-user-mode-badges");
+			} else {
+				document.body.classList.remove("show-user-mode-badges");
+			}
+		},
+	},
+
 	stickyGroupHeaders: {
 		default: true,
 		sync: "always" as const,

@@ -266,6 +266,21 @@
 			<label class="opt">
 				<input
 					type="checkbox"
+					name="showUserModeBadges"
+					:checked="settings.showUserModeBadges"
+					@change="
+						$emit('change', {name: 'showUserModeBadges', value: $event.target.checked})
+					"
+				/>
+				Show user mode badges
+			</label>
+			<p class="settings-help">
+				Display IRC user mode badges (@, %, +) next to usernames in userlist
+			</p>
+
+			<label class="opt">
+				<input
+					type="checkbox"
 					name="stickyGroupHeaders"
 					:checked="settings.stickyGroupHeaders"
 					@change="

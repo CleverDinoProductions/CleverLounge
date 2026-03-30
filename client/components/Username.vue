@@ -17,7 +17,16 @@
 	>
 		<StatusIcon v-if="showStatusIcon && userStatus !== 'offline'" :status="userStatus" />
 
-		<slot>{{ mode }}{{ user.nick }}</slot>
+		<span
+			v-if="shouldShowUserModeBadge"
+			class="user-mode-badge"
+			:class="{compact: compactBadges}"
+			:title="showClassTooltips ? userModeName : ''"
+		>
+			<span v-if="!compactBadges && userModeIcon" class="user-mode-badge-icon">
+				{{ userModeIcon }}
+			</span>
+		</span>
 
 		<span
 			v-if="shouldShowBadge"
@@ -28,7 +37,13 @@
 			<span v-if="!compactBadges && mamClassIcon" class="mam-class-badge-icon">
 				{{ mamClassIcon }}
 			</span>
-			<span class="mam-class-badge-text">{{ mamClassShort }}</span>
+		</span>
+
+		<span v-if="shouldShowUserModeBadge">
+			<slot>{{ user.nick }}</slot>
+		</span>
+		<span v-else>
+			<slot>{{ mode }}{{ user.nick }}</slot>
 		</span>
 	</span>
 </template>
@@ -70,6 +85,47 @@
 }
 
 .mam-class-badge-text {
+	font-weight: 600;
+	line-height: 1;
+}
+
+/* ============================================
+   USER MODE BADGES
+   ============================================ */
+
+.user-mode-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 2px;
+	font-size: 0.75em;
+	margin-left: 4px;
+	opacity: 0.9;
+	padding: 2px 4px;
+	border-radius: 3px;
+	background: rgba(255, 255, 255, 0.1);
+	transition: opacity 0.2s ease;
+}
+
+.user-mode-badge:hover {
+	opacity: 1;
+}
+
+.user-mode-badge.compact {
+	font-size: 0.65em;
+	padding: 1px 3px;
+	gap: 0;
+}
+
+.user-mode-badge.compact .user-mode-badge-icon {
+	display: none;
+}
+
+.user-mode-badge-icon {
+	font-size: 1.1em;
+	line-height: 1;
+}
+
+.user-mode-badge-text {
 	font-weight: 600;
 	line-height: 1;
 }
@@ -140,6 +196,7 @@ export default defineComponent({
 		const useTextColors = computed(() => store.state.settings.useTextColors);
 		const useBackgroundColors = computed(() => store.state.settings.useBackgroundColors);
 		const showClassBadges = computed(() => store.state.settings.showClassBadges);
+		const showUserModeBadges = computed(() => store.state.settings.showUserModeBadges);
 		const compactBadges = computed(() => store.state.settings.compactBadges);
 		const showClassTooltips = computed(() => store.state.settings.showClassTooltips);
 		const enableHostmaskCache = computed(() => store.state.settings.enableHostmaskCache);
@@ -306,6 +363,7 @@ export default defineComponent({
 			return "";
 		});
 
+		// MAM Class Icons & Names
 		const mamClassIcon = computed(() => {
 			if (!mamClass.value) return "";
 			const icons: Record<string, string> = {
@@ -390,6 +448,43 @@ export default defineComponent({
 			return shorts[mamClass.value.class] || "";
 		});
 
+		// User Mode Badges and Names
+		const userModeIcon = computed(() => {
+			if (!mode.value) return "";
+			const icons: Record<string, string> = {
+				"~": "👑",
+				"&": "🔧",
+				"@": "🛡️",
+				"%": "⚔️",
+				"+": "🎤",
+			};
+			return icons[mode.value] || "";
+		});
+
+		const userModeName = computed(() => {
+			if (!mode.value) return "";
+			const names: Record<string, string> = {
+				"~": "Owner",
+				"&": "Administrator",
+				"@": "Operator",
+				"%": "Half-Operator",
+				"+": "Voiced User",
+			};
+			return names[mode.value] || "";
+		});
+
+		const userModeShort = computed(() => {
+			if (!mode.value) return "";
+			const shorts: Record<string, string> = {
+				"~": "Owner",
+				"&": "Admin",
+				"@": "Op",
+				"%": "Half-Op",
+				"+": "Voice",
+			};
+			return shorts[mode.value] || mode.value.class;
+		});
+
 		const shouldShowBadge = computed(() => {
 			return (
 				trackerFeaturesEnabled.value &&
@@ -397,6 +492,15 @@ export default defineComponent({
 				mamClass.value &&
 				mamClassIcon.value &&
 				mamClassShort.value
+			);
+		});
+
+		const shouldShowUserModeBadge = computed(() => {
+			return (
+				showUserModeBadges.value &&
+				showUserModeBadges.value &&
+				mode.value &&
+				userModeIcon.value
 			);
 		});
 
@@ -430,7 +534,11 @@ export default defineComponent({
 			mamClassShort,
 			mamClassName,
 			mamClass,
+			userModeIcon,
+			userModeName,
+			userModeShort,
 			shouldShowBadge,
+			shouldShowUserModeBadge,
 			compactBadges,
 			showClassTooltips,
 			nickColor: (enabled: boolean) => (enabled ? colorClass(props.user.nick!) : ""),

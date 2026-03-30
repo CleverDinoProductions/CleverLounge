@@ -397,6 +397,9 @@ function initializeBodyClasses() {
 	if (settings.showClassBadges) {
 		document.body.classList.add("show-tracker-badges");
 	}
+	if (settings.showUserModeBadges) {
+		document.body.classList.add("show-user-mode-badges");
+	}
 	if (settings.stickyGroupHeaders) {
 		document.body.classList.add("sticky-userlist-headers");
 	}
