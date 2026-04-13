@@ -58,7 +58,7 @@
                         aria-label="Open your mentions"
                         @click="openMentions"
                     />
-                    
+
                     <button class="btn-history" aria-label="View History" @click="showHistory">
                         📜 View History
                     </button>
@@ -123,6 +123,125 @@
         </div>
         <ChatInput :network="network" :channel="channel" />
     </div>
+	<div id="chat-container" class="window" :data-current-channel="channel.name" lang="">
+		<div
+			id="chat"
+			:class="{
+				'hide-motd': !store.state.settings.motd,
+				'time-seconds': store.state.settings.showSeconds,
+				'time-12h': store.state.settings.use12hClock,
+				'colored-nicks': true, // TODO temporarily fixes themes, to be removed in next major version
+			}"
+		>
+			<div
+				:id="'chan-' + channel.id"
+				class="chat-view"
+				:data-type="channel.type"
+				:aria-label="channel.name"
+				role="tabpanel"
+			>
+				<div class="header">
+					<SidebarToggle />
+					<span class="title" :aria-label="'Currently open ' + channel.type">{{
+						channel.name
+					}}</span>
+					<div v-if="channel.editTopic === true" class="topic-container">
+						<input
+							ref="topicInput"
+							:value="channel.topic"
+							class="topic-input"
+							placeholder="Set channel topic"
+							enterkeyhint="done"
+							@keyup.enter="saveTopic"
+							@keyup.esc="channel.editTopic = false"
+						/>
+						<span aria-label="Save topic" class="save-topic" @click="saveTopic">
+							<span type="button" aria-label="Save topic"></span>
+						</span>
+					</div>
+					<span
+						v-else
+						:title="plainTopic"
+						:class="{topic: true, empty: !channel.topic}"
+						@dblclick="editTopic"
+						><ParsedMessage
+							v-if="channel.topic"
+							:network="network"
+							:text="channel.topic"
+					/></span>
+					<MessageSearchForm
+						v-if="
+							store.state.settings.searchEnabled &&
+							['channel', 'query'].includes(channel.type)
+						"
+						:network="network"
+						:channel="channel"
+					/>
+					<button
+						class="mentions"
+						aria-label="Open your mentions"
+						@click="openMentions"
+					/>
+					<button
+						class="menu"
+						aria-label="Open the context menu"
+						@click="openContextMenu"
+					/>
+					<span
+						v-if="channel.type === 'channel'"
+						class="rt-tooltip tooltipped tooltipped-w"
+						aria-label="Toggle user list"
+					>
+						<button
+							class="rt"
+							aria-label="Toggle user list"
+							@click="store.commit('toggleUserlist')"
+						/>
+					</span>
+				</div>
+				<div v-if="channel.type === 'special'" class="chat-content">
+					<div class="chat">
+						<div class="messages">
+							<div class="msg">
+								<component
+									:is="specialComponent"
+									:network="network"
+									:channel="channel"
+								/>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div v-else class="chat-content">
+					<div
+						:class="[
+							'scroll-down tooltipped tooltipped-w tooltipped-no-touch',
+							{'scroll-down-shown': !channel.scrolledToBottom},
+						]"
+						aria-label="Jump to recent messages"
+						@click="messageList?.jumpToBottom()"
+					>
+						<div class="scroll-down-arrow" />
+					</div>
+					<ChatUserList v-if="channel.type === 'channel'" :channel="channel" />
+					<MessageList
+						ref="messageList"
+						:network="network"
+						:channel="channel"
+						:focused="focused"
+					/>
+				</div>
+			</div>
+		</div>
+		<div
+			v-if="store.state.currentUserVisibleError"
+			id="user-visible-error"
+			@click="hideUserVisibleError"
+		>
+			{{ store.state.currentUserVisibleError }}
+		</div>
+		<ChatInput :network="network" :channel="channel" />
+	</div>
 </template>
 
 <script lang="ts">
@@ -142,6 +261,7 @@ import {defineComponent, PropType, ref, computed, watch, nextTick, onMounted, Co
 import type {ClientNetwork, ClientChan} from "../js/types";
 import {useStore} from "../js/store";
 import {SpecialChanType, ChanType} from "../../shared/types/chan";
+import parseStyle from "../js/helpers/ircmessageparser/parseStyle";
 
 export default defineComponent({
     name: "Chat",
@@ -165,17 +285,29 @@ export default defineComponent({
         const messageList = ref<typeof MessageList>();
         const topicInput = ref<HTMLInputElement | null>(null);
 
-        const specialComponent = computed(() => {
-            switch (props.channel.special) {
-                case SpecialChanType.BANLIST:
-                    return ListBans as Component;
-                case SpecialChanType.INVITELIST:
-                    return ListInvites as Component;
-                case SpecialChanType.CHANNELLIST:
-                    return ListChannels as Component;
-                case SpecialChanType.IGNORELIST:
-                    return ListIgnored as Component;
-            }
+		const plainTopic = computed(() => {
+			const topic = props.channel.topic;
+
+			if (!topic) {
+				return "";
+			}
+
+			return parseStyle(topic)
+				.map((fragment) => fragment.text)
+				.join("");
+		});
+
+		const specialComponent = computed(() => {
+			switch (props.channel.special) {
+				case SpecialChanType.BANLIST:
+					return ListBans as Component;
+				case SpecialChanType.INVITELIST:
+					return ListInvites as Component;
+				case SpecialChanType.CHANNELLIST:
+					return ListChannels as Component;
+				case SpecialChanType.IGNORELIST:
+					return ListIgnored as Component;
+			}
 
             return undefined;
         });
@@ -264,32 +396,25 @@ export default defineComponent({
         onMounted(() => {
             channelChanged();
 
-            if (props.channel.editTopic) {
-                void nextTick(() => {
-                    topicInput.value?.focus();
-                });
-            }
-        });
-
-        return {
-            store,
-            messageList,
-            topicInput,
-            specialComponent,
-            hideUserVisibleError,
-            editTopic,
-            saveTopic,
-            openContextMenu,
-            openMentions,
-            showHistory,
-        };
-    },
+		return {
+			store,
+			messageList,
+			topicInput,
+			plainTopic,
+			specialComponent,
+			hideUserVisibleError,
+			editTopic,
+			saveTopic,
+			openContextMenu,
+			openMentions,
+		};
+	},
 });
 </script>
 
 <style scoped>
-/* The Lounge uses specific header button styles. 
-   I've added a basic class here to match the 
+/* The Lounge uses specific header button styles.
+   I've added a basic class here to match the
    layout of your mentions/menu buttons.
 */
 .btn-history {

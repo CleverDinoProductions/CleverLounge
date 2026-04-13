@@ -4,6 +4,7 @@ import {MessageType, LinkPreview, UserInMessage} from "../../shared/types/msg";
 class Msg {
 	from!: UserInMessage;
 	id!: number;
+	msgid?: string;
 	previews!: LinkPreview[];
 	text!: string;
 	type!: MessageType;
@@ -37,7 +38,7 @@ class Msg {
 	who!: any;
 	whowas!: any;
 	users!: string[];
-	statusmsgGroup!: string;
+	statusmsgGroup?: string;
 	params!: string[];
 
 	constructor(attr?: Partial<Msg>) {

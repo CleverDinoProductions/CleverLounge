@@ -3,7 +3,7 @@
 	<aside class="settings-menu">
 		<h2>Settings</h2>
 		<ul role="navigation" aria-label="Settings tabs">
-			<SettingTabItem name="General" class-name="general" to="" />
+			<SettingTabItem v-if="showGeneral" name="General" class-name="general" to="" />
 			<SettingTabItem name="Appearance" class-name="appearance" to="appearance" />
 			<SettingTabItem
 				name="Tracker Features"
@@ -16,7 +16,7 @@
 				to="parser-customization"
 			/>
 			<SettingTabItem name="Notifications" class-name="notifications" to="notifications" />
-			<SettingTabItem name="Account" class-name="account" to="account" />
+			<SettingTabItem v-if="!isPublic" name="Account" class-name="account" to="account" />
 		</ul>
 	</aside>
 </template>
@@ -111,11 +111,18 @@
 <script lang="ts">
 import SettingTabItem from "./SettingTabItem.vue";
 import {defineComponent} from "vue";
+import {useStore} from "../../js/store";
 
 export default defineComponent({
 	name: "SettingsTabs",
 	components: {
 		SettingTabItem,
+	},
+	setup() {
+		const store = useStore();
+		const isPublic = store.state.serverConfiguration?.public;
+		const showGeneral = !isPublic || store.state.serverConfiguration?.fileUpload;
+		return {isPublic, showGeneral};
 	},
 });
 </script>
