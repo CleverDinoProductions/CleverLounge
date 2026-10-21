@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import type {Element} from "domhandler";
 import got from "got";
 import {URL} from "url";
 import mime from "mime-types";
@@ -167,7 +168,7 @@ function parseHtmlMedia($: any, preview, client: Client): Promise<FetchRequest> 
 				return;
 			}
 
-			$(`meta[property="og:${type}:type"]`).each(function (this: cheerio.Element, i: number) {
+			$(`meta[property="og:${type}:type"]`).each(function (this: Element, i: number) {
 				const mimeType = $(this).attr("content");
 
 				if (!mimeType) {
@@ -393,6 +394,8 @@ function getRequestHeaders(headers: Record<string, string>) {
 	return formattedHeaders;
 }
 
+// We know link prefetch can be used for SSRF, see https://github.com/thelounge/thelounge/issues/1990
+// This feature is disabled by default, do not report this as a security vulnerability.
 function fetch(uri: string, headers: Record<string, string>) {
 	// Stringify the object otherwise the objects won't compute to the same value
 	const cacheKey = JSON.stringify([uri, headers]);

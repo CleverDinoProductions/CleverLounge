@@ -1,163 +1,78 @@
-import {IrcEventHandler} from "../../client";
+import type {IrcEventHandler} from "../../client";
+import Msg from "../../models/msg";
+import {ChanType} from "../../../shared/types/chan";
+import {MessageType} from "../../../shared/types/msg";
 
+// https://ircv3.net/specs/extensions/monitor
+// https://ircv3.net/specs/extensions/extended-monitor
 export default <IrcEventHandler>function (irc, network) {
 	const client = this;
 
-	// MONITOR: User came online
-	irc.on("monitoronline", function (data) {
-		const {nick, account} = data;
+	function getMonitoredQuery(nick: string) {
+		const channel = network.getChannel(nick);
+		return channel?.type === ChanType.QUERY ? channel : undefined;
+	}
 
-		network.channels.forEach((chan) => {
-			const user = chan.findUser(nick);
-			if (user) {
-				// Update user status
-				(user as any).monitorStatus = {
-					online: true,
-					away: false,
-				};
+	// RPL_MONONLINE (730) / RPL_MONOFFLINE (731)
+	function handleMonitorStatus(nicks: string[], online: boolean) {
+		const changedChannels: string[] = [];
 
-				if (account) {
-					(user as any).account = account;
-				}
-			}
-		});
+		for (const nick of nicks) {
+			const channel = getMonitoredQuery(nick);
 
-		// Emit update to clients for each channel
-		network.channels.forEach((chan) => {
-			client.emit("users", {
-				chan: chan.id,
-			});
-		});
-	});
-
-	// MONITOR: User went offline
-	irc.on("monitoroffline", function (data) {
-		const {nick} = data;
-
-		network.channels.forEach((chan) => {
-			const user = chan.findUser(nick);
-			if (user) {
-				// Update user status
-				(user as any).monitorStatus = {
-					online: false,
-					away: false,
-				};
-			}
-		});
-
-		// Emit update to clients for each channel
-		network.channels.forEach((chan) => {
-			client.emit("users", {
-				chan: chan.id,
-			});
-		});
-	});
-
-	// Handle RPL_MONONLINE (730) and RPL_MONOFFLINE (731) via raw messages
-	irc.on("raw", function (message: any) {
-		// RPL_MONONLINE (730) - User is online
-		if (message.command === "730") {
-			const targets = message.params && message.params[1] ? message.params[1].split(",") : [];
-
-			targets.forEach((target: string) => {
-				const match = target.match(/^([^!]+)/);
-				if (match) {
-					const nick = match[1];
-
-					network.channels.forEach((chan) => {
-						const user = chan.findUser(nick);
-						if (user) {
-							(user as any).monitorStatus = {
-								online: true,
-								away: false,
-							};
-						}
-					});
-				}
-			});
-
-			// Emit update to clients for each channel
-			network.channels.forEach((chan) => {
-				client.emit("users", {
-					chan: chan.id,
-				});
-			});
-		}
-
-		// RPL_MONOFFLINE (731) - User is offline
-		if (message.command === "731") {
-			const targets = message.params && message.params[1] ? message.params[1].split(",") : [];
-
-			targets.forEach((nick: string) => {
-				network.channels.forEach((chan) => {
-					const user = chan.findUser(nick);
-					if (user) {
-						(user as any).monitorStatus = {
-							online: false,
-							away: false,
-						};
-					}
-				});
-			});
-
-			// Emit update to clients for each channel
-			network.channels.forEach((chan) => {
-				client.emit("users", {
-					chan: chan.id,
-				});
-			});
-		}
-	});
-
-	// Track away status changes
-	irc.on("away", function (data) {
-		const {nick, message} = data;
-
-		network.channels.forEach((chan) => {
-			const user = chan.findUser(nick);
-			if (user && (user as any).monitorStatus) {
-				(user as any).monitorStatus.away = !!message;
-			}
-		});
-
-		// Emit update to clients for each channel
-		network.channels.forEach((chan) => {
-			client.emit("users", {
-				chan: chan.id,
-			});
-		});
-	});
-
-	// Auto-MONITOR users when they join channels
-	irc.on("join", function (data) {
-		if (data.nick !== irc.user.nick) {
-			// Add user to MONITOR list using raw command
-			// Format: MONITOR + nickname
-			irc.raw("MONITOR", "+", data.nick);
-		}
-	});
-
-	// Remove from MONITOR when they quit
-	irc.on("quit", function (data) {
-		// Remove from MONITOR list using raw command
-		// Format: MONITOR - nickname
-		irc.raw("MONITOR", "-", data.nick);
-	});
-
-	// When connecting, enable MONITOR capability if supported
-	irc.on("registered", function () {
-		// Check if server supports MONITOR capability
-		const ircCap = (irc as any).network?.cap;
-
-		if (ircCap && typeof ircCap.isEnabled === "function") {
-			// Try to enable monitor-notify if available
-			if (!ircCap.isEnabled("monitor-notify")) {
-				irc.raw("CAP", "REQ", "monitor-notify");
+			if (channel && channel.isOnline !== online) {
+				channel.isOnline = online;
+				changedChannels.push(channel.name);
 			}
 		}
 
-		// Alternative: Some servers support MONITOR without explicit CAP
-		// Try sending MONITOR C (clear list) to test support
-		irc.raw("MONITOR", "C");
+		if (changedChannels.length > 0) {
+			client.emit(online ? "users:online" : "users:offline", {
+				changedChannels,
+				networkId: network.uuid,
+			});
+		}
+	}
+
+	irc.on("users online", (data) => handleMonitorStatus(data.nicks, true));
+	irc.on("users offline", (data) => handleMonitorStatus(data.nicks, false));
+
+	// ERR_MONLISTFULL (734). Surface as a status message — the user didn't
+	// trigger MONITOR directly, so this is informational, not an error.
+	irc.on("irc error", function (data) {
+		if (data.error !== "monitor_list_full") {
+			return;
+		}
+
+		network.getLobby().pushMessage(
+			client,
+			new Msg({
+				text: "Your monitor list is full on this network; some queries may not show online/away status.",
+			}),
+			true
+		);
+	});
+
+	// account-notify for a monitored nick we don't share a channel with
+	irc.on("account", function (data) {
+		if (network.serverOptions.MONITOR === null) {
+			return;
+		}
+
+		const channel = getMonitoredQuery(data.nick);
+
+		if (!channel || channel.findUser(data.nick)) {
+			return;
+		}
+
+		channel.pushMessage(
+			client,
+			new Msg({
+				time: data.time,
+				type: data.account ? MessageType.LOGIN : MessageType.LOGOUT,
+				from: channel.getUser(data.nick),
+				text: data.account || "",
+			})
+		);
 	});
 };

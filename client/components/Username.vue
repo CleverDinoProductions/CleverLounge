@@ -15,7 +15,11 @@
 		@click.prevent="openContextMenu"
 		@contextmenu.prevent="openContextMenu"
 	>
-		<StatusIcon v-if="showStatusIcon && userStatus !== 'offline'" :status="userStatus" />
+		<StatusIcon
+			v-if="showStatusIcon && userStatus !== 'offline'"
+			:online="userStatus === 'online'"
+			:away="userStatus === 'away'"
+		/>
 
 		<span
 			v-if="shouldShowUserModeBadge"
@@ -40,11 +44,15 @@
 		</span>
 
 		<span v-if="shouldShowUserModeBadge">
-			<slot>{{ user.nick }}</slot>
+			<span v-if="html" class="nick" v-html="html"></span>
+			<slot v-else>{{ user.nick }}</slot>
 		</span>
 		<span v-else>
-			<slot>{{ mode }}{{ user.nick }}</slot>
+			<span v-if="html" class="nick" v-html="html"></span>
+			<slot v-else>{{ mode }}{{ user.nick }}</slot>
 		</span>
+		<span v-if="user.isBot" class="user-bot-indicator" title="Bot"> [bot]</span>
+		<StatusIcon v-if="includeStatusIcon" :away="!!user.away" :online="true" tooltip-dir="w" />
 	</span>
 </template>
 
@@ -167,6 +175,8 @@ export default defineComponent({
 		StatusIcon,
 	},
 	props: {
+		includeStatusIcon: Boolean,
+		html: String,
 		user: {
 			type: Object as PropType<UsernameUser | UserInMessage>,
 			required: true,

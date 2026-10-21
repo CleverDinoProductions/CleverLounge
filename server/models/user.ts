@@ -9,6 +9,7 @@ class User {
 	nick!: string;
 	lastMessage!: number;
 	hostmask?: string; // NEW: Store hostmask
+	isBot!: boolean;
 
 	constructor(attr: Partial<User>, prefix?: Prefix) {
 		_.defaults(this, attr, {
@@ -17,6 +18,7 @@ class User {
 			nick: "",
 			lastMessage: 0,
 			hostmask: undefined, // NEW: Default value
+			isBot: false,
 		});
 
 		Object.defineProperty(this, "mode", {
@@ -38,8 +40,10 @@ class User {
 		return {
 			nick: this.nick,
 			modes: this.modes,
+			away: this.away,
 			lastMessage: this.lastMessage,
 			hostmask: this.hostmask, // NEW: Include hostmask in JSON sent to frontend
+			isBot: this.isBot,
 		};
 	}
 }
