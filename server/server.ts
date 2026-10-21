@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 
 import _ from "lodash";
-import {Server as wsServer} from "ws";
+import ws from "ws";
 import express, {NextFunction, Request, Response} from "express";
 import fs from "fs";
 import path from "path";
 import {Server as ioServer, Socket as ioSocket} from "socket.io";
 import dns from "dns";
-import colors from "chalk";
+import colors from "./colors";
 import net from "net";
 
 import log from "./log";
@@ -15,11 +15,13 @@ import Client from "./client";
 import ClientManager from "./clientManager";
 import Uploader from "./plugins/uploader";
 import Helper from "./helper";
-import Config, {ConfigType} from "./config";
+import Config from "./config";
 import Identification from "./identification";
 import changelog from "./plugins/changelog";
 import inputs from "./plugins/inputs";
 import Auth from "./plugins/auth";
+import {VALID_TYPING_STATUSES} from "../shared/types/typing";
+import {injectServerConfig} from "./plugins/html-config";
 
 import themes from "./plugins/packages/themes";
 themes.loadLocalThemes();
@@ -46,13 +48,8 @@ type ServerOptions = {
 	dev: boolean;
 };
 
-type ServerConfiguration = ConfigType & {
-	stylesheets: string[];
-};
-
-type IndexTemplateConfiguration = ServerConfiguration & {
-	cacheBust: string;
-};
+// Cached built HTML (production only — read once at startup)
+let cachedHtml: string | null = null;
 
 type Socket = ioSocket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
 export type Server = ioServer<
@@ -66,6 +63,7 @@ export type Server = ioServer<
 const serverHash = Math.floor(Date.now() * Math.random());
 
 let manager: ClientManager | null = null;
+let isDev = false;
 
 export default async function (
 	options: ServerOptions = {
@@ -85,8 +83,10 @@ export default async function (
 
 	const app = express();
 
+	isDev = options.dev;
+
 	if (options.dev) {
-		(await import("./plugins/dev-server")).default(app);
+		await (await import("./plugins/dev-server")).default(app);
 	}
 
 	app.set("env", "production")
@@ -95,8 +95,6 @@ export default async function (
 		.use(addSecurityHeaders)
 		.get("/", indexRequest)
 		.get("/service-worker.js", forceNoCacheRequest)
-		.get("/js/bundle.js.map", forceNoCacheRequest)
-		.get("/css/style.css.map", forceNoCacheRequest)
 		.use(express.static(Utils.getFileFromRelativeToRoot("public"), staticOptions))
 		.use("/storage/", express.static(Config.getStoragePath(), staticOptions));
 
@@ -244,7 +242,7 @@ export default async function (
 		}
 
 		const sockets: Server = new ioServer(server, {
-			wsEngine: wsServer,
+			wsEngine: ws.Server,
 			cookie: false,
 			serveClient: false,
 			transports: Config.values.transports as any,
@@ -287,7 +285,7 @@ export default async function (
 				process.exit(1);
 			}
 
-			manager.init(identHandler, sockets);
+			void manager.init(identHandler, sockets);
 		});
 
 		let suicideTimeout: NodeJS.Timeout | null = null;
@@ -381,16 +379,16 @@ function allRequests(_req: Request, res: Response, next: NextFunction) {
 
 function addSecurityHeaders(_req: Request, res: Response, next: NextFunction) {
 	const policies = [
-		"default-src 'none'",
-		"base-uri 'none'",
-		"form-action 'self'",
-		"connect-src 'self' ws: wss:",
-		"style-src 'self' https: 'unsafe-inline'",
-		"script-src 'self'",
-		"worker-src 'self'",
-		"manifest-src 'self'",
-		"font-src 'self' https:",
-		"media-src 'self' https:",
+		"default-src 'none'", // default to nothing
+		"base-uri 'none'", // disallow <base>, has no fallback to default-src
+		"form-action 'self'", // 'self' to fix saving passwords in Firefox, even though login is handled in javascript
+		"connect-src 'self' ws: wss:", // allow self for polling; websockets
+		"style-src 'self' https: 'unsafe-inline'", // allow inline due to use in irc hex colors
+		isDev ? "script-src 'self' 'unsafe-eval'" : "script-src 'self'", // javascript
+		"worker-src 'self'", // service worker
+		"manifest-src 'self'", // manifest.json
+		"font-src 'self' https:", // allow loading fonts from secure sites (e.g. google fonts)
+		"media-src 'self' https:", // self for notification sound; allow https media (audio previews)
 	];
 
 	if (Config.values.prefetchStorage || !Config.values.prefetch) {
@@ -411,23 +409,26 @@ function forceNoCacheRequest(_req: Request, res: Response, next: NextFunction) {
 	return next();
 }
 
+function getBaseHtml(): string {
+	if (cachedHtml) {
+		return cachedHtml;
+	}
+
+	cachedHtml = fs.readFileSync(Utils.getFileFromRelativeToRoot("public", "index.html"), "utf-8");
+
+	return cachedHtml;
+}
+
 function indexRequest(_req: Request, res: Response) {
-	res.setHeader("Content-Type", "text/html");
-
-	fs.readFile(Utils.getFileFromRelativeToRoot("client/index.html.tpl"), "utf-8", (err, file) => {
-		if (err) {
-			log.error(`failed to server index request: ${err.name}, ${err.message}`);
-			res.sendStatus(500);
-			return;
-		}
-
-		const config: IndexTemplateConfiguration = {
-			...getServerConfiguration(),
-			...{cacheBust: Helper.getVersionCacheBust()},
-		};
-
-		res.send(_.template(file)(config));
-	});
+	try {
+		const html = injectServerConfig(getBaseHtml());
+		res.setHeader("Content-Type", "text/html");
+		res.send(html);
+	} catch (e) {
+		const err = e as Error;
+		log.error(`failed to serve index request: ${err.name}, ${err.message}`);
+		res.sendStatus(500);
+	}
 }
 
 function initializeClient(
@@ -461,6 +462,38 @@ function initializeClient(
 		if (_.isPlainObject(data)) {
 			client.input(data);
 		}
+	});
+
+	socket.on("typing", (data) => {
+		if (!_.isPlainObject(data)) {
+			return;
+		}
+
+		const status = data.status;
+
+		if (!VALID_TYPING_STATUSES.has(status)) {
+			return;
+		}
+
+		const target = client.find(data.target);
+
+		if (!target) {
+			return;
+		}
+
+		const {network, chan} = target;
+
+		if (chan.type !== ChanType.CHANNEL && chan.type !== ChanType.QUERY) {
+			return;
+		}
+
+		const irc = network.irc;
+
+		if (!irc?.network?.cap?.isEnabled("message-tags")) {
+			return;
+		}
+
+		irc.tagmsg(chan.name, {"+typing": status});
 	});
 
 	socket.on("more", (data) => {
@@ -590,7 +623,7 @@ function initializeClient(
 
 	if (!Config.values.public) {
 		socket.on("msg:preview:toggle", (data) => {
-			if (_.isPlainObject(data)) {
+			if (!_.isPlainObject(data)) {
 				return;
 			}
 			const networkAndChan = client.find(data.target);
@@ -648,7 +681,7 @@ function initializeClient(
 				subscription
 			);
 			if (registration) {
-				client.manager.webPush.pushSingle(client, registration, {
+				void client.manager.webPush.pushSingle(client, registration, {
 					type: "notification",
 					timestamp: Date.now(),
 					title: "The Lounge",
@@ -791,7 +824,19 @@ function initializeClient(
 	} else if (!token) {
 		client.generateToken((newToken) => {
 			token = client.calculateTokenHash(newToken);
-			client.attachedClients[socket.id].token = token;
+
+			// generateToken is asynchronous, so the socket may have disconnected while it
+			// was running, in which case clientDetach has already removed the attached
+			// client. There is nothing left to hand the token to: the session would record
+			// a connection that is gone and sendInitEvent would emit into a closed socket.
+			const attachedClient = client.attachedClients[socket.id];
+
+			if (!attachedClient) {
+				return;
+			}
+
+			attachedClient.token = token;
+
 			client.updateSession(token, getClientIp(socket), socket.request);
 			sendInitEvent(newToken);
 		});
@@ -837,7 +882,7 @@ function getClientConfiguration(): SharedConfiguration | LockedSharedConfigurati
 	}
 
 	const defaults: LockedConfigNetDefaults = {
-		..._.omit(Config.values.defaults, ["host", "name", "port", "tls", "rejectUnauthorized"]),
+		..._.omit(Config.values.defaults, ["host", "port", "tls", "rejectUnauthorized"]),
 		...defaultsOverride,
 	};
 
@@ -846,10 +891,6 @@ function getClientConfiguration(): SharedConfiguration | LockedSharedConfigurati
 		lockNetwork: Config.values.lockNetwork,
 		defaults: defaults,
 	};
-}
-
-function getServerConfiguration(): ServerConfiguration {
-	return {...Config.values, ...{stylesheets: packages.getStylesheets()}};
 }
 
 function performAuthentication(this: Socket, data: AuthPerformData) {

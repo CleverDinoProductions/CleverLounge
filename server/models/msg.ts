@@ -5,6 +5,9 @@ class Msg {
 	from!: UserInMessage;
 	id!: number;
 	msgid?: string;
+	replyTo?: string;
+	replyToNick?: string;
+	replyToText?: string;
 	previews!: LinkPreview[];
 	text!: string;
 	type!: MessageType;
@@ -40,6 +43,7 @@ class Msg {
 	users!: string[];
 	statusmsgGroup?: string;
 	params!: string[];
+	multiline?: boolean;
 
 	constructor(attr?: Partial<Msg>) {
 		// Some properties need to be copied in the Msg object instead of referenced

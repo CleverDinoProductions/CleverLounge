@@ -46,7 +46,14 @@ node scripts/changelog <version>
 "use strict";
 
 const _ = require("lodash");
-const colors = require("chalk");
+const {styleText} = require("util");
+
+const colors = Object.fromEntries(
+	["bold", "dim", "red", "green", "yellow", "blue", "gray"].map((c) => [
+		c,
+		(text) => styleText(c, String(text)),
+	])
+);
 const fs = require("fs");
 const path = require("path");
 const got = require("got");
@@ -595,7 +602,7 @@ ${printList(items)}
 
 const dependencies = Object.keys(packageJson.dependencies);
 const devDependencies = Object.keys(packageJson.devDependencies);
-const optionalDependencies = Object.keys(packageJson.optionalDependencies);
+const optionalDependencies = Object.keys(packageJson.optionalDependencies || {});
 
 // Returns the package.json section in which that package exists, or undefined
 // if that package is not listed there.
@@ -870,12 +877,12 @@ async function generateChangelogEntry(changelog, targetVersion) {
 		);
 		items.websiteDocumentation = websiteCommitsAndPullRequests;
 
+		dedupeEntries(changelog, items);
+
 		contributors = extractContributors([
 			...codeCommitsAndPullRequests,
-			...websiteCommitsAndPullRequests,
+			...items.websiteDocumentation,
 		]);
-
-		dedupeEntries(changelog, items);
 	}
 
 	items.version = targetVersion;

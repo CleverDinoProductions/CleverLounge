@@ -490,6 +490,24 @@ function parse(
 	network?: ClientNetwork,
 	channel?: ClientChan
 ) {
+	if (text && text.includes("\n")) {
+		return text
+			.split("\n")
+			.flatMap((line, i) =>
+				i === 0
+					? parseLine(line, message, network, channel)
+					: [createElement("br"), ...parseLine(line, message, network, channel)]
+			);
+	}
+	return parseLine(text, message, network, channel);
+}
+
+function parseLine(
+	text: string,
+	message?: ClientMessage,
+	network?: ClientNetwork,
+	channel?: ClientChan
+) {
 	// NEW: Clean ZNC playback duplicates FIRST before any other parsing
 	let processedText = text;
 

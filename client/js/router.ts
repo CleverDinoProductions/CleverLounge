@@ -20,6 +20,7 @@ import TrackerFeatures from "../components/Settings/TrackerFeatures.vue";
 import ParserCustomization from "../components/Settings/ParserCustomization.vue";
 import IdleStatus from "../components/Windows/IdleStatus.vue";
 import {ClientChan} from "./types";
+import {shouldShowGeneralSettings} from "./helpers/settingsTabs";
 
 const router = createRouter({
 	history: createWebHashHistory(),
@@ -49,14 +50,27 @@ const router = createRouter({
 			component: Settings,
 			children: [
 				{
-					name: "General",
+					name: "Appearance",
 					path: "",
-					component: GeneralSettings,
+					component: AppearanceSettings,
 				},
 				{
-					name: "Appearance",
-					path: "appearance",
-					component: AppearanceSettings,
+					name: "Notifications",
+					path: "notifications",
+					component: NotificationSettings,
+				},
+				{
+					name: "General",
+					path: "general",
+					component: GeneralSettings,
+					beforeEnter(to, from, next) {
+						if (!shouldShowGeneralSettings()) {
+							next({name: "Appearance"});
+							return;
+						}
+
+						next();
+					},
 				},
 				{
 					name: "Tracker Features",
@@ -75,9 +89,9 @@ const router = createRouter({
 					props: true,
 				},
 				{
-					name: "Notifications",
-					path: "notifications",
-					component: NotificationSettings,
+					// Appearance used to live here, keep old links working
+					path: "appearance",
+					redirect: {name: "Appearance"},
 				},
 			],
 		},

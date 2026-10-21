@@ -1,9 +1,8 @@
 import _ from "lodash";
 import UAParser from "ua-parser-js";
-import {v4 as uuidv4} from "uuid";
 import escapeRegExp from "lodash/escapeRegExp";
 import crypto from "crypto";
-import colors from "chalk";
+import colors from "./colors";
 
 import log from "./log";
 import Chan, {ChanConfig} from "./models/chan";
@@ -42,6 +41,7 @@ const events = [
 	"list",
 	"mode",
 	"modelist",
+	"monitor",
 	"motd",
 	"message",
 	"names",
@@ -49,10 +49,12 @@ const events = [
 	"part",
 	"quit",
 	"sasl",
+	"tagmsg",
 	"topic",
 	"welcome",
 	"who",
 	"whois",
+	"standard-reply",
 ];
 
 type ClientPushSubscription = {
@@ -108,7 +110,7 @@ class Client {
 	fileHash!: string;
 
 	constructor(manager: ClientManager, name?: string, config = {} as UserConfig) {
-		this.id = uuidv4();
+		this.id = crypto.randomUUID();
 		_.merge(this, {
 			awayMessage: "",
 			lastActiveChannel: -1,
@@ -451,7 +453,23 @@ class Client {
 
 	input(data) {
 		const client = this;
-		data.text.split("\n").forEach((line) => {
+		const text: string = data.text;
+
+		// This is either a normal message or a command escaped with a leading '/'
+		const isMessage = text.charAt(0) !== "/" || text.charAt(1) === "/";
+
+		// Networks supporting draft/multiline take the whole message as a single
+		// batch, everything else has to be sent one line at a time.
+		if (isMessage && text.includes("\n")) {
+			const target = client.find(data.target);
+
+			if (target && target.network.irc?.network.cap.isEnabled("draft/multiline")) {
+				client.inputLine(data);
+				return;
+			}
+		}
+
+		text.split("\n").forEach((line) => {
 			data.text = line;
 			client.inputLine(data);
 		});
@@ -513,7 +531,13 @@ class Client {
 				return;
 			}
 
-			plugin.input.apply(client, [target.network, target.chan, cmd, args]);
+			plugin.input.apply(client, [
+				target.network,
+				target.chan,
+				cmd,
+				args,
+				{replyTo: data.replyTo},
+			]);
 			return;
 		}
 
@@ -754,6 +778,11 @@ class Client {
 
 	part(network: Network, chan: Chan) {
 		const client = this;
+
+		if (chan.type === ChanType.QUERY) {
+			network.removeMonitor(chan.name);
+		}
+
 		network.channels = _.without(network.channels, chan);
 		client.mentions = client.mentions.filter((msg) => !(msg.chanId === chan.id));
 		chan.destroy();

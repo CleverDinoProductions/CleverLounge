@@ -3,7 +3,7 @@ import path from "path";
 import fs, {Stats} from "fs";
 import os from "os";
 import _ from "lodash";
-import colors from "chalk";
+import colors from "./colors";
 import {SearchOptions} from "ldapjs";
 
 import log from "./log";
@@ -232,6 +232,15 @@ class Config {
 			this.merge(userConfig);
 		}
 
+		// Hostnames are case-insensitive. Network.validate() lowercases the host of
+		// every incoming/persisted network, so normalize the configured default to
+		// the same canonical form once here at load. This keeps the lockNetwork
+		// allow-list comparison in Network.validate() correct no matter what casing
+		// an admin used for defaults.host in config.js (see #4733).
+		if (this.values.defaults.host) {
+			this.values.defaults.host = this.values.defaults.host.toLowerCase();
+		}
+
 		if (this.values.fileUpload.baseUrl) {
 			try {
 				new URL("test/file.png", this.values.fileUpload.baseUrl);
@@ -247,9 +256,9 @@ class Config {
 		}
 
 		const manifestPath = Utils.getFileFromRelativeToRoot("public", "thelounge.webmanifest");
+		const manifestExists = fs.existsSync(manifestPath);
 
-		// Check if manifest exists, if not, the app most likely was not built
-		if (!fs.existsSync(manifestPath)) {
+		if (!manifestExists && process.env.NODE_ENV !== "test") {
 			log.error(
 				`The client application was not built. Run ${colors.bold(
 					"NODE_ENV=production yarn build"
@@ -258,9 +267,10 @@ class Config {
 			process.exit(1);
 		}
 
-		// Load theme color from the web manifest
-		const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
-		this.values.themeColor = manifest.theme_color;
+		if (manifestExists) {
+			const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+			this.values.themeColor = manifest.theme_color;
+		}
 
 		// log dir probably shouldn't be world accessible.
 		// Create it with the desired permission bits if it doesn't exist yet.
